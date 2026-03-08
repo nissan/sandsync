@@ -12,6 +12,11 @@ import { devi } from "./agents/devi";
  * to write, review, and narrate stories.
  *
  * Pipeline: Papa Bois → Anansi → Ogma → Devi → PowerSync → Client
+ *
+ * Research-backed design:
+ * - Ogma on qwen3:4b local (LLM-as-judge, $0 cost, benchmark-justified)
+ * - Claude Haiku for Papa Bois, Anansi, Devi (speed + cost)
+ * - Rich agent_trace telemetry on every chapter
  */
 export const mastra = new Mastra({
   agents: {
