@@ -560,7 +560,6 @@ Return ONLY valid JSON with the same structure as before.`;
           reviewed_content: finalOgmaReview?.reviewed_content || currentContent,
           audio_url: audioUrl,
           image_url: imageUrl,
-          illustration_prompt: illustrationPrompt,
           revision_count: revisionHistory.length - 1,
           quality_score: finalOgmaScore,
           agent_trace: agentTrace,
