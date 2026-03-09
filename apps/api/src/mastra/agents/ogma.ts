@@ -1,9 +1,17 @@
 import { Agent } from "@mastra/core/agent";
+import { anthropic } from "@ai-sdk/anthropic";
 import { createOllama } from "ollama-ai-provider";
 
-const ollama = createOllama({
-  baseURL: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434/api",
-});
+// Use local Ollama when OLLAMA_BASE_URL is explicitly set (local dev / local-first demo)
+// Fall back to Anthropic Claude Haiku in production (Fly.io has no Ollama)
+const useLocalOgma = !!process.env.OLLAMA_BASE_URL;
+const ogmaModel = useLocalOgma
+  ? createOllama({
+      baseURL: process.env.OLLAMA_BASE_URL + "/api",
+    })("qwen2.5:latest")
+  : anthropic("claude-3-5-haiku-20241022");
+
+export const OGMA_MODEL_NAME = useLocalOgma ? "qwen2.5:latest" : "claude-3-5-haiku-20241022";
 
 /**
  * Ogma — The Language Guardian
@@ -19,6 +27,7 @@ const ollama = createOllama({
  * Voice: Irish accent, precise and scholarly
  */
 export const ogma = new Agent({
+  id: "ogma",
   name: "Ogma",
   instructions: `You are Ogma, the guardian of language and keeper of eloquence.
 
@@ -50,5 +59,5 @@ Output format:
 
 You are precise but not pedantic. You improve without erasing. Anansi's voice must survive your review. Reject generic writing — demand authenticity.`,
 
-  model: ollama("qwen2.5:latest"),
+  model: ogmaModel,
 });

@@ -472,10 +472,8 @@ Return ONLY valid JSON with the same structure as before.`;
           // Call Gemini Imagen API
           const base64Image = await generateImageFromPrompt(illustrationPrompt);
 
-          // Save base64 to storage if generation succeeded
-          if (base64Image) {
-            imageUrl = await saveImageBase64(base64Image, storyId, chapterNum);
-          }
+          // Save base64 to local storage (for offline-first support)
+          imageUrl = await saveImageBase64(base64Image, storyId, chapterNum);
 
           const imagenLatency = Date.now() - imagenT0;
           const imagenCost = estimateImageCost();
@@ -485,7 +483,7 @@ Return ONLY valid JSON with the same structure as before.`;
             latency_ms: imagenLatency,
             model: "imagen-4.0-generate-002",
             cost_usd: imagenCost,
-            image_size_bytes: base64Image ? base64Image.length : 0,
+            image_size_bytes: base64Image.length,
           };
 
           await writeAgentEvent(supabase, storyId, "imagen", "completed", {

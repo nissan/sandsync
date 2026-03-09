@@ -74,7 +74,6 @@ async function handlePostStory(req: Request, corsHeaders: Record<string, string>
   }
 
   const storyId = story.id;
-  console.log(`[POST /stories] Created story ${storyId} for user ${userId}`);
 
   // Kick off pipeline async — do NOT await
   (async () => {
@@ -175,7 +174,6 @@ async function handleGetAudio(storyId: string, chapterNum: number, corsHeaders: 
       },
     });
   } catch (err: any) {
-    console.warn(`[Audio] Not found: ${audioPath}`);
     return new Response(
       JSON.stringify({ error: "Audio not found" }),
       {
@@ -240,8 +238,4 @@ const server = Bun.serve({
   },
 });
 
-console.log(`\n🌴 SandSync API running on http://localhost:${PORT}`);
-console.log(`   POST /stories                        — create a story`);
-console.log(`   GET  /stories/:id/status            — check status`);
-console.log(`   GET  /stories/:id/chapters/:n/audio — serve chapter audio`);
-console.log(`   GET  /health                        — health check\n`);
+
