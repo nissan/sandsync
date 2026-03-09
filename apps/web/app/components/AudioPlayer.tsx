@@ -108,20 +108,20 @@ export function AudioPlayer({ src, chapterTitle }: AudioPlayerProps) {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border border-purple-800/30 rounded-xl px-5 py-4">
-        <div className="flex items-center gap-2 mb-2 text-sm font-medium text-purple-400">
+      <div className="bg-slate-800/60 backdrop-blur rounded-xl border border-amber-200/20 px-5 py-4">
+        <div className="flex items-center gap-2 mb-2 text-sm font-medium text-amber-400">
           <span>⚠️</span>
           <span>Audio unavailable</span>
         </div>
-        <p className="text-xs text-purple-300/60">{error}</p>
+        <p className="text-xs text-amber-200/40">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border border-purple-800/30 rounded-xl px-5 py-5">
+    <div className="bg-slate-800/60 backdrop-blur rounded-xl border border-amber-200/20 px-5 py-5">
       {/* Label */}
-      <div className="flex items-center gap-2 mb-4 text-sm font-medium text-purple-300">
+      <div className="flex items-center gap-2 mb-4 text-sm font-medium text-amber-100">
         <span>🎵</span>
         <span>Narration by Devi</span>
       </div>
@@ -137,10 +137,10 @@ export function AudioPlayer({ src, chapterTitle }: AudioPlayerProps) {
           disabled={isLoading || !!error}
           className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
             isLoading || error
-              ? "bg-purple-700/30 text-purple-400/50 cursor-not-allowed"
+              ? "bg-amber-700/30 text-amber-400/50 cursor-not-allowed"
               : isPlaying
-                ? "bg-purple-600 text-white hover:bg-purple-500"
-                : "bg-purple-700/50 text-purple-300 hover:bg-purple-600"
+                ? "bg-amber-500 text-white hover:bg-amber-400"
+                : "bg-amber-500/50 text-amber-100 hover:bg-amber-500"
           } ${
             prefersReducedMotion ? "" : "active:scale-95"
           }`}
@@ -169,10 +169,10 @@ export function AudioPlayer({ src, chapterTitle }: AudioPlayerProps) {
             onTouchStart={() => setIsSeeking(true)}
             onTouchEnd={() => setIsSeeking(false)}
             disabled={isLoading || !!error || !duration}
-            className="w-full h-1.5 bg-purple-700/30 rounded-full cursor-pointer accent-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-1.5 bg-amber-700/30 rounded-full cursor-pointer accent-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Audio progress"
           />
-          <div className="flex justify-between text-xs text-purple-400/70 font-mono">
+          <div className="flex justify-between text-xs text-amber-200/60 font-mono">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -180,7 +180,7 @@ export function AudioPlayer({ src, chapterTitle }: AudioPlayerProps) {
 
         {/* Volume control */}
         <div className="flex items-center gap-2">
-          <label htmlFor="volume-slider" className="text-xs text-purple-400/60">
+          <label htmlFor="volume-slider" className="text-xs text-amber-200/60">
             🔊
           </label>
           <input
@@ -192,7 +192,7 @@ export function AudioPlayer({ src, chapterTitle }: AudioPlayerProps) {
             value={volume}
             onChange={handleVolumeChange}
             disabled={isLoading || !!error}
-            className="w-12 h-1.5 bg-purple-700/30 rounded-full cursor-pointer accent-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-12 h-1.5 bg-amber-700/30 rounded-full cursor-pointer accent-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Volume"
           />
         </div>
@@ -200,7 +200,7 @@ export function AudioPlayer({ src, chapterTitle }: AudioPlayerProps) {
 
       {/* Loading/generating state */}
       {isLoading && (
-        <div className="mt-3 text-xs text-purple-400/60 flex items-center gap-2">
+        <div className="mt-3 text-xs text-amber-200/60 flex items-center gap-2">
           <span className={prefersReducedMotion ? "" : "inline-block animate-pulse"}>●</span>
           <span>Loading audio...</span>
         </div>

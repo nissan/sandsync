@@ -112,12 +112,12 @@ function AgentDebugPage() {
           <h1 className="text-3xl md:text-4xl font-bold text-amber-100">
             Agent Trace Debug View
           </h1>
-          <p className="text-amber-400/60 text-sm font-mono">story_id: {id}</p>
+          <p className="text-amber-200/60 text-sm font-mono">story_id: {id}</p>
         </div>
         <Link
           to="/stories/$id"
           params={{ id }}
-          className="text-sm font-medium text-amber-500/70 hover:text-amber-300 transition-colors px-4 py-2 rounded-lg hover:bg-amber-900/20 w-fit"
+          className="text-sm font-medium text-amber-200/70 hover:text-amber-100 transition-colors px-4 py-2 rounded-lg hover:bg-amber-500/10 w-fit"
         >
           ← Back to story
         </Link>
@@ -132,7 +132,7 @@ function AgentDebugPage() {
           return (
             <div
               key={agent}
-              className={`border border-amber-800/30 rounded-xl p-4 bg-gradient-to-br ${style.bgGradient} transition-all ${
+              className={`border border-amber-200/20 rounded-xl p-4 bg-slate-800/50 backdrop-blur-lg transition-all ${
                 isActive ? "" : "opacity-50"
               }`}
             >
@@ -196,23 +196,23 @@ function AgentDebugPage() {
 
       {/* Total execution time */}
       {totalTime > 0 && (
-        <div className="border border-amber-800/20 rounded-lg px-4 py-3 bg-amber-950/20">
-          <div className="text-xs text-amber-400/60 mb-1">Total execution time</div>
+        <div className="border border-amber-200/20 rounded-lg px-4 py-3 bg-slate-800/50 backdrop-blur">
+          <div className="text-xs text-amber-200/60 mb-1">Total execution time</div>
           <div className="text-xl font-bold text-amber-100">{totalTime.toFixed(1)}s</div>
         </div>
       )}
 
       {/* Event timeline */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-amber-400/80 uppercase tracking-widest">
+        <h2 className="text-sm font-semibold text-amber-100 uppercase tracking-widest">
           Event Timeline ({events.length} events)
         </h2>
 
         {events.length === 0 ? (
-          <div className="border border-amber-800/20 rounded-xl px-5 py-8 text-center bg-amber-950/20">
+          <div className="border border-amber-200/20 rounded-xl px-5 py-8 text-center bg-slate-800/50 backdrop-blur-lg">
             <div className="text-3xl mb-2">📭</div>
-            <p className="text-amber-400/60 text-sm font-medium">No events recorded yet</p>
-            <p className="text-amber-500/40 text-xs mt-1">Events will appear here as agents process the story</p>
+            <p className="text-amber-100 text-sm font-medium">No events recorded yet</p>
+            <p className="text-amber-200/40 text-xs mt-1">Events will appear here as agents process the story</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -235,7 +235,7 @@ function AgentDebugPage() {
               return (
                 <div
                   key={event.id}
-                  className={`border rounded-lg overflow-hidden transition-all bg-gradient-to-r ${style.bgGradient} border-amber-800/30`}
+                  className={`border rounded-lg overflow-hidden transition-all bg-slate-800/50 backdrop-blur-lg border-amber-200/20`}
                 >
                   {/* Event header - always visible */}
                   <button
@@ -250,17 +250,17 @@ function AgentDebugPage() {
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
                               event.event_type === "completed"
-                                ? "bg-green-900/50 text-green-400"
+                                ? "bg-green-500/20 text-green-400 border-green-400/60"
                                 : event.event_type === "failed"
-                                ? "bg-red-900/50 text-red-400"
-                                : "bg-amber-900/50 text-amber-400"
+                                ? "bg-red-500/20 text-red-400 border-red-400/60"
+                                : "bg-amber-500/20 text-amber-400 border-amber-400/60"
                             }`}
                           >
                             {event.event_type}
                           </span>
-                          <span className="text-xs text-amber-400/60">{timeStr}</span>
+                          <span className="text-xs text-amber-200/60">{timeStr}</span>
                         </div>
                       </div>
                     </div>
@@ -268,16 +268,16 @@ function AgentDebugPage() {
                     {/* Quick metrics inline */}
                     <div className="flex items-center gap-4 flex-shrink-0 text-xs">
                       {event.latency_ms && (
-                        <div className="text-amber-400/70">
+                        <div className="text-amber-200/70">
                           <span className="font-mono">{(event.latency_ms / 1000).toFixed(2)}s</span>
                         </div>
                       )}
                       {event.quality_score && (
-                        <div className="text-amber-400/70">
+                        <div className="text-amber-200/70">
                           <span className="font-mono">Score: {event.quality_score.toFixed(1)}</span>
                         </div>
                       )}
-                      <span className={`text-xs text-amber-400/40 ${isExpanded ? "rotate-180" : ""} transition-transform`}>
+                      <span className={`text-xs text-amber-200/40 ${isExpanded ? "rotate-180" : ""} transition-transform`}>
                         ▼
                       </span>
                     </div>
@@ -285,12 +285,12 @@ function AgentDebugPage() {
 
                   {/* Expandable details */}
                   {isExpanded && (
-                    <div className="border-t border-amber-800/20 px-5 py-4 bg-black/20 space-y-4">
+                    <div className="border-t border-amber-200/20 px-5 py-4 bg-black/20 space-y-4">
                       {/* Key details grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         {event.model && (
                           <div>
-                            <div className="text-amber-400/60 text-xs uppercase tracking-wider font-semibold mb-1">
+                            <div className="text-amber-100 text-xs uppercase tracking-wider font-semibold mb-1">
                               Model
                             </div>
                             <div className="font-mono text-amber-100">{event.model}</div>
@@ -298,7 +298,7 @@ function AgentDebugPage() {
                         )}
                         {event.tokens && (
                           <div>
-                            <div className="text-amber-400/60 text-xs uppercase tracking-wider font-semibold mb-1">
+                            <div className="text-amber-100 text-xs uppercase tracking-wider font-semibold mb-1">
                               Tokens Used
                             </div>
                             <div className="font-mono text-amber-100">{event.tokens.toLocaleString()}</div>
@@ -306,7 +306,7 @@ function AgentDebugPage() {
                         )}
                         {event.latency_ms && (
                           <div>
-                            <div className="text-amber-400/60 text-xs uppercase tracking-wider font-semibold mb-1">
+                            <div className="text-amber-100 text-xs uppercase tracking-wider font-semibold mb-1">
                               Latency
                             </div>
                             <div className="font-mono text-amber-100">
@@ -316,7 +316,7 @@ function AgentDebugPage() {
                         )}
                         {event.quality_score !== undefined && (
                           <div>
-                            <div className="text-amber-400/60 text-xs uppercase tracking-wider font-semibold mb-1">
+                            <div className="text-amber-100 text-xs uppercase tracking-wider font-semibold mb-1">
                               Quality Score
                             </div>
                             <div
@@ -337,10 +337,10 @@ function AgentDebugPage() {
                       {/* Decision/reasoning */}
                       {event.decision_reason && (
                         <div>
-                          <div className="text-amber-400/60 text-xs uppercase tracking-wider font-semibold mb-2">
+                          <div className="text-amber-100 text-xs uppercase tracking-wider font-semibold mb-2">
                             Decision Points
                           </div>
-                          <div className="bg-black/30 border border-amber-800/20 rounded-lg px-3 py-2 text-xs text-amber-100/80 max-h-40 overflow-y-auto">
+                          <div className="bg-black/30 border border-amber-200/20 rounded-lg px-3 py-2 text-xs text-amber-100/80 max-h-40 overflow-y-auto">
                             {typeof event.decision_reason === "string" ? (
                               <p>{event.decision_reason}</p>
                             ) : Array.isArray(event.decision_reason) ? (
@@ -364,7 +364,7 @@ function AgentDebugPage() {
                             href={`https://cloud.langfuse.com/trace/${event.langfuse_trace_id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-900/20 border border-purple-800/40 text-xs font-medium text-purple-400 hover:bg-purple-900/40 hover:border-purple-700/60 transition-colors"
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/20 border border-amber-400/60 text-xs font-medium text-amber-300 hover:bg-amber-500/30 hover:border-amber-400/80 transition-colors"
                           >
                             <span>🔗</span>
                             <span>View full trace in Langfuse</span>
@@ -375,10 +375,10 @@ function AgentDebugPage() {
 
                       {/* Raw JSON for advanced debugging */}
                       <details className="group">
-                        <summary className="cursor-pointer text-xs font-mono text-amber-400/50 hover:text-amber-400/70 py-2 select-none">
+                        <summary className="cursor-pointer text-xs font-mono text-amber-200/50 hover:text-amber-200/70 py-2 select-none">
                           Raw payload (JSON)
                         </summary>
-                        <div className="bg-black/40 border border-amber-800/20 rounded-lg px-3 py-2 mt-2 text-xs font-mono text-amber-100/70 overflow-x-auto max-h-80 overflow-y-auto">
+                        <div className="bg-black/40 border border-amber-200/20 rounded-lg px-3 py-2 mt-2 text-xs font-mono text-amber-100/70 overflow-x-auto max-h-80 overflow-y-auto">
                           <pre className="whitespace-pre-wrap break-words">
                             {JSON.stringify(event.payload, null, 2)}
                           </pre>
@@ -394,7 +394,7 @@ function AgentDebugPage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-amber-800/20 pt-6 text-xs text-amber-400/50 text-center">
+      <footer className="border-t border-amber-200/20 pt-6 text-xs text-amber-200/50 text-center">
         <p>
           Last event:{" "}
           {events.length > 0

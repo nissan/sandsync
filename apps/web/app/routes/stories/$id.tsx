@@ -9,10 +9,10 @@ export const Route = createFileRoute("/stories/$id")({
 });
 
 const AGENT_COLORS: Record<string, string> = {
-  papa_bois: "from-green-900/30 to-emerald-900/20",
-  anansi: "from-amber-900/30 to-yellow-900/20",
-  ogma: "from-blue-900/30 to-cyan-900/20",
-  devi: "from-purple-900/30 to-indigo-900/20",
+  papa_bois: "bg-slate-800/50",
+  anansi: "bg-slate-800/50",
+  ogma: "bg-slate-800/50",
+  devi: "bg-slate-800/50",
 };
 
 const AGENT_ICONS: Record<string, string> = {
@@ -134,8 +134,10 @@ function StoryReaderPage() {
         {Object.entries(agentStatuses).map(([agent, status]) => (
           <div
             key={agent}
-            className={`border border-amber-800/30 rounded-lg px-4 py-3 bg-gradient-to-r ${AGENT_COLORS[agent]} transition-all duration-300 ${
-              status.completed ? "border-green-600/40" : "border-amber-700/40"
+            className={`border rounded-lg px-4 py-3 backdrop-blur transition-all duration-300 ${
+              status.completed
+                ? "bg-green-500/20 border-green-400/60 shadow-green-400/30 shadow-lg"
+                : "bg-amber-500/30 border-amber-400 shadow-amber-400/30 shadow-lg scale-105"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -148,17 +150,19 @@ function StoryReaderPage() {
               <div className="flex items-center gap-2">
                 {status.completed ? (
                   <span className="text-xs font-medium text-green-400 flex items-center gap-1">
-                    <span className="text-lg">✓</span> Done
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                    Done
                   </span>
                 ) : (
                   <span className="text-xs font-medium text-amber-400 flex items-center gap-1">
-                    <span className="inline-block animate-spin">⟳</span> Working
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    Working
                   </span>
                 )}
               </div>
             </div>
             {status.latency && (
-              <div className="text-xs text-amber-400/60 mt-2">
+              <div className="text-xs text-amber-200/60 mt-2">
                 {(status.latency / 1000).toFixed(1)}s
               </div>
             )}
@@ -169,11 +173,11 @@ function StoryReaderPage() {
       {/* Progress bar */}
       {isGenerating && (
         <div className="space-y-2">
-          <div className="flex justify-between items-center text-xs text-amber-400/60">
+          <div className="flex justify-between items-center text-xs text-amber-200/70">
             <span>Pipeline progress</span>
             <span>{completedAgents}/{totalAgents} agents completed</span>
           </div>
-          <div className="w-full h-1.5 bg-amber-950/40 rounded-full overflow-hidden border border-amber-800/20">
+          <div className="w-full h-1.5 bg-slate-700/30 rounded-full overflow-hidden border border-amber-200/20">
             <div
               className="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-500 ease-out"
               style={{ width: `${(completedAgents / totalAgents) * 100}%` }}
@@ -184,14 +188,14 @@ function StoryReaderPage() {
 
       {/* Chapters section */}
       {!chapters || chapters.length === 0 ? (
-        <div className="border border-amber-800/20 rounded-xl px-6 py-12 text-center bg-amber-950/20">
+        <div className="bg-slate-800/50 backdrop-blur-lg rounded-xl px-6 py-12 text-center border border-amber-200/20">
           <div className="text-4xl mb-3">✍️</div>
-          <p className="text-amber-400/70 font-medium">
+          <p className="text-amber-100 font-medium">
             {isGenerating
               ? "Chapters are being written by Anansi..."
               : "No chapters yet"}
           </p>
-          <p className="text-amber-500/50 text-sm mt-2">
+          <p className="text-amber-200/60 text-sm mt-2">
             {isGenerating
               ? `${completedAgents} of ${totalAgents} agents have completed their work`
               : "Try requesting a new story"}
@@ -202,9 +206,9 @@ function StoryReaderPage() {
           {chapters.map((chapter, idx) => (
             <article key={chapter.id} className="scroll-mt-8" id={`chapter-${chapter.chapter_number}`}>
               {/* Chapter header */}
-              <div className="mb-6 pb-4 border-b border-amber-800/30">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-900/40 border border-amber-800/20 mb-3">
-                  <span className="text-xs font-semibold text-amber-500/70 uppercase tracking-widest">
+              <div className="mb-6 pb-4 border-b border-amber-200/20">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-500/20 border border-amber-400/60 mb-3">
+                  <span className="text-xs font-semibold text-amber-100 uppercase tracking-widest">
                     Chapter {chapter.chapter_number}
                   </span>
                 </div>
@@ -226,11 +230,11 @@ function StoryReaderPage() {
               </div>
 
               {/* Audio narration */}
-              <div className="mt-8 pt-6 border-t border-amber-800/20">
+              <div className="mt-8 pt-6 border-t border-amber-200/20">
                 {chapter.audio_url ? (
                   <AudioPlayer src={getAudioUrl(chapter.audio_url)!} chapterTitle={chapter.title} />
                 ) : (
-                  <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border border-purple-800/30 rounded-xl px-5 py-4 text-sm text-purple-300/70 flex items-center gap-3">
+                  <div className="bg-slate-800/60 backdrop-blur rounded-xl border border-amber-200/20 px-5 py-4 text-sm text-amber-200/70 flex items-center gap-3">
                     <span className="text-lg animate-pulse">🎵</span>
                     <span className="font-medium">Narration by Devi — processing audio...</span>
                   </div>
@@ -249,18 +253,18 @@ function StoryReaderPage() {
       )}
 
       {/* Footer with debug link */}
-      <footer className="border-t border-amber-800/20 pt-8 mt-8">
+      <footer className="border-t border-amber-200/20 pt-8 mt-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <Link
             to="/"
-            className="text-sm text-amber-500/70 hover:text-amber-400 transition-colors px-3 py-2 rounded-lg hover:bg-amber-900/20 w-fit"
+            className="text-sm text-amber-200/70 hover:text-amber-100 transition-colors px-3 py-2 rounded-lg hover:bg-amber-500/10 w-fit"
           >
             ← Back to stories
           </Link>
           <Link
             to="/stories/$id/agents"
             params={{ id }}
-            className="text-sm font-medium text-amber-500/70 hover:text-amber-300 transition-colors px-3 py-2 rounded-lg hover:bg-amber-900/20 flex items-center gap-2 w-fit"
+            className="text-sm font-medium text-amber-200/70 hover:text-amber-100 transition-colors px-3 py-2 rounded-lg hover:bg-amber-500/10 flex items-center gap-2 w-fit"
           >
             <span>🔍</span>
             <span>View agent trace</span>

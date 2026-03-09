@@ -67,7 +67,7 @@ test.describe("Feature: Story Request Form", () => {
       );
       // Short button should be highlighted
       const shortBtn = page.getByText("Short (3 chapters)");
-      await expect(shortBtn).toHaveClass(/bg-amber-600/);
+      await expect(shortBtn).toHaveClass(/bg-amber-500/);
     });
   });
 

@@ -81,28 +81,28 @@ function HomePage() {
       </div>
 
       {/* Story Request Form */}
-      <div className="bg-amber-950/50 border border-amber-800/30 rounded-2xl p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-amber-200">
+      <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl p-6 space-y-5 border border-amber-200/20 glow">
+        <h2 className="text-lg font-semibold text-amber-100">
           🕷️ Request a Story
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="bg-red-900/30 border border-red-700/50 rounded-lg px-4 py-2 text-sm text-red-300">
+            <div className="bg-red-500/20 border border-red-400/60 rounded-lg px-4 py-2 text-sm text-red-300">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm text-amber-400/80 mb-1">
+            <label className="block text-xs font-medium text-amber-100 mb-2">
               Folklore Genre
             </label>
             <select
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
-              className="w-full bg-amber-950 border border-amber-700/50 rounded-lg px-3 py-2 text-amber-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full bg-slate-700/50 border border-amber-200/30 text-white text-sm rounded-lg px-3 py-2 placeholder-amber-200/40 focus:outline-none focus:ring-1 focus:ring-amber-400"
             >
               {GENRES.map((g) => (
-                <option key={g} value={g}>
+                <option key={g} value={g} className="bg-slate-700">
                   {g}
                 </option>
               ))}
@@ -110,7 +110,7 @@ function HomePage() {
           </div>
 
           <div>
-            <label className="block text-sm text-amber-400/80 mb-1">
+            <label className="block text-xs font-medium text-amber-100 mb-2">
               Theme or Setting (optional)
             </label>
             <input
@@ -118,12 +118,12 @@ function HomePage() {
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
               placeholder="e.g. a young fisherman in Tobago, rainy season..."
-              className="w-full bg-amber-950 border border-amber-700/50 rounded-lg px-3 py-2 text-amber-100 placeholder-amber-700 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full bg-slate-700/50 border border-amber-200/30 text-white text-sm rounded-lg px-3 py-2 placeholder-amber-200/40 focus:outline-none focus:ring-1 focus:ring-amber-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-amber-400/80 mb-1">
+            <label className="block text-xs font-medium text-amber-100 mb-2">
               Story Length
             </label>
             <div className="flex gap-3">
@@ -132,10 +132,10 @@ function HomePage() {
                   key={l.value}
                   type="button"
                   onClick={() => setLength(l.value)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm border transition-colors ${
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
                     length === l.value
-                      ? "bg-amber-600 border-amber-500 text-white"
-                      : "bg-amber-950 border-amber-700/50 text-amber-400 hover:border-amber-600"
+                      ? "bg-amber-500 border-amber-400 text-white hover:bg-amber-400"
+                      : "bg-slate-700/30 border-slate-600/30 text-amber-200/70 hover:border-amber-400/50 hover:text-amber-200"
                   }`}
                 >
                   {l.label}
@@ -147,7 +147,7 @@ function HomePage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-800 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+            className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-amber-600 disabled:cursor-not-allowed rounded-xl font-medium transition-all text-white glow"
           >
             {submitting ? "🌿 Papa Bois is listening..." : "🌴 Begin the Story"}
           </button>
@@ -156,11 +156,11 @@ function HomePage() {
 
       {/* Recent Stories */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-amber-200">
+        <h2 className="text-lg font-semibold text-amber-100">
           📖 Recent Stories
         </h2>
         {!stories || stories.length === 0 ? (
-          <div className="bg-amber-950/30 border border-amber-800/20 rounded-xl px-5 py-4 text-sm text-amber-400/60">
+          <div className="bg-slate-800/30 backdrop-blur-lg rounded-xl px-5 py-4 text-sm text-amber-200/40 border border-amber-200/10">
             No stories yet. Request one to get started.
           </div>
         ) : (
@@ -169,22 +169,22 @@ function HomePage() {
               <a
                 key={story.id}
                 href={`/stories/${story.id}`}
-                className="block bg-amber-950/30 border border-amber-800/20 rounded-xl px-5 py-4 hover:border-amber-700/50 transition-colors"
+                className="block bg-slate-800/50 backdrop-blur-lg rounded-2xl px-5 py-4 border border-amber-200/20 hover:border-amber-200/50 hover:scale-[1.02] transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-medium text-amber-100">{story.title}</div>
-                    <div className="text-sm text-amber-400/60 mt-0.5">
+                    <div className="text-sm text-amber-200/60 mt-0.5">
                       {story.genre}
                     </div>
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${
+                    className={`text-xs px-2 py-1 rounded-full font-medium border ${
                       story.status === "complete"
-                        ? "bg-green-900/50 text-green-400"
+                        ? "bg-green-500/20 text-green-400 border-green-400/60"
                         : story.status === "failed"
-                        ? "bg-red-900/50 text-red-400"
-                        : "bg-amber-900/50 text-amber-400"
+                        ? "bg-red-500/20 text-red-400 border-red-400/60"
+                        : "bg-amber-500/20 text-amber-400 border-amber-400/60 animate-pulse"
                     }`}
                   >
                     {story.status === "complete"
