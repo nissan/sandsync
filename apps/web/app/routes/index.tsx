@@ -18,17 +18,10 @@ const GENRES = [
   "Silk cotton tree legend",
 ];
 
-const LENGTHS = [
-  { value: "short", label: "Short (3 chapters)" },
-  { value: "medium", label: "Medium (5 chapters)" },
-  { value: "long", label: "Long (7 chapters)" },
-];
-
 function HomePage() {
   const navigate = useNavigate();
   const { data: stories } = useQuery<Story>("SELECT * FROM stories ORDER BY created_at DESC");
   const [genre, setGenre] = useState(GENRES[0]);
-  const [length, setLength] = useState("medium");
   const [theme, setTheme] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -49,7 +42,7 @@ function HomePage() {
           body: JSON.stringify({
             genre,
             theme: theme || undefined,
-            length,
+            length: "short",
           }),
         }
       );
@@ -120,28 +113,6 @@ function HomePage() {
               placeholder="e.g. a young fisherman in Tobago, rainy season..."
               className="w-full bg-slate-700/50 border border-amber-200/30 text-white text-sm rounded-lg px-3 py-2 placeholder-amber-200/40 focus:outline-none focus:ring-1 focus:ring-amber-400"
             />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-amber-100 mb-2">
-              Story Length
-            </label>
-            <div className="flex gap-3">
-              {LENGTHS.map((l) => (
-                <button
-                  key={l.value}
-                  type="button"
-                  onClick={() => setLength(l.value)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${
-                    length === l.value
-                      ? "bg-amber-500 border-amber-400 text-white hover:bg-amber-400"
-                      : "bg-slate-700/30 border-slate-600/30 text-amber-200/70 hover:border-amber-400/50 hover:text-amber-200"
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           <button

@@ -17,6 +17,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { papaBois, anansi, ogma } from "../index";
 import { generateNarration, estimateCost } from "../../services/elevenlabs";
+import {
+  generateIllustrationPrompt,
+  generateImageFromPrompt,
+  saveImageBase64,
+  estimateImageCost,
+} from "../../services/imagen";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -438,6 +444,84 @@ Return ONLY valid JSON with the same structure as before.`;
         console.log(`  [Devi] 🔇 Dry-run mode — skipping ElevenLabs, mocking audio_url`);
       }
 
+      // ── 2c-bis. Image generation (Gemini Imagen) ────────────────────────
+
+      let imageUrl: string | null = null;
+      let illustrationPrompt: string | null = null;
+      let imagenTrace: any = null;
+
+      if (!dryRun) {
+        console.log(`  [Imagen] 🎨 Generating chapter illustration...`);
+        const imagenT0 = Date.now();
+
+        try {
+          await writeAgentEvent(supabase, storyId, "imagen", "started", {
+            chapter: chapterNum,
+          });
+
+          // Generate illustration prompt using Haiku
+          illustrationPrompt = await generateIllustrationPrompt(
+            currentContent,
+            chapterNum,
+            brief.title,
+            brief.folklore_elements
+          );
+
+          // Call Gemini Imagen API
+          const base64Image = await generateImageFromPrompt(illustrationPrompt);
+
+          // Save base64 to local storage (for offline-first support)
+          imageUrl = await saveImageBase64(base64Image, storyId, chapterNum);
+
+          const imagenLatency = Date.now() - imagenT0;
+          const imagenCost = estimateImageCost();
+          totalCostUsd += imagenCost;
+
+          imagenTrace = {
+            latency_ms: imagenLatency,
+            model: "imagen-4.0-generate-002",
+            cost_usd: imagenCost,
+            image_size_bytes: base64Image.length,
+          };
+
+          await writeAgentEvent(supabase, storyId, "imagen", "completed", {
+            chapter: chapterNum,
+            image_url: imageUrl,
+            latency_ms: imagenLatency,
+            cost_usd: imagenCost,
+          });
+
+          console.log(
+            `  [Imagen] ✅ Illustration generated (${imagenLatency}ms, $${imagenCost})`
+          );
+        } catch (err: any) {
+          console.warn(
+            `  [Imagen] ⚠️  Image generation failed: ${err.message} — skipping`
+          );
+          await writeAgentEvent(supabase, storyId, "imagen", "failed", {
+            chapter: chapterNum,
+            error: err.message,
+          });
+          imagenTrace = {
+            latency_ms: 0,
+            error: err.message,
+            cost_usd: 0,
+          };
+        }
+      } else {
+        // Dry-run: mock image
+        illustrationPrompt =
+          "Lush Caribbean watercolor illustration of a spirit emerging from the forest.";
+        imageUrl = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`;
+        imagenTrace = {
+          latency_ms: 0,
+          model: "imagen-4.0-generate-002",
+          cost_usd: 0,
+          dry_run: true,
+        };
+        console.log(`  [Imagen] 🔇 Dry-run mode — mocking image`);
+      }
+
       // ── 2d. Write chapter to Supabase ──────────────────────────────────────
 
       const agentTrace = {
@@ -460,6 +544,7 @@ Return ONLY valid JSON with the same structure as before.`;
           force_approved: forceApproved,
         },
         devi: deviTrace,
+        imagen: imagenTrace,
       };
 
       const { error: chapterError } = await supabase
@@ -470,6 +555,8 @@ Return ONLY valid JSON with the same structure as before.`;
           content: currentContent, // Anansi's final draft (after revision)
           reviewed_content: finalOgmaReview?.reviewed_content || currentContent,
           audio_url: audioUrl,
+          image_url: imageUrl,
+          illustration_prompt: illustrationPrompt,
           revision_count: revisionHistory.length - 1,
           quality_score: finalOgmaScore,
           agent_trace: agentTrace,

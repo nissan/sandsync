@@ -8,6 +8,16 @@
   50% { opacity: 1; }
 }
 
+/* Loading shimmer effect for images */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 /* Glow effect for cards and buttons */
 .glow {
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);

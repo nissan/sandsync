@@ -13,6 +13,7 @@ const AGENT_COLORS: Record<string, string> = {
   anansi: "bg-slate-800/50",
   ogma: "bg-slate-800/50",
   devi: "bg-slate-800/50",
+  imagen: "bg-slate-800/50",
 };
 
 const AGENT_ICONS: Record<string, string> = {
@@ -20,6 +21,7 @@ const AGENT_ICONS: Record<string, string> = {
   anansi: "🕷️",
   ogma: "📜",
   devi: "🎵",
+  imagen: "🎨",
 };
 
 const AGENT_LABELS: Record<string, string> = {
@@ -27,6 +29,7 @@ const AGENT_LABELS: Record<string, string> = {
   anansi: "Anansi",
   ogma: "Ogma",
   devi: "Devi",
+  imagen: "Imagen",
 };
 
 function StoryReaderPage() {
@@ -52,6 +55,7 @@ function StoryReaderPage() {
     anansi: { completed: false },
     ogma: { completed: false },
     devi: { completed: false },
+    imagen: { completed: false },
   });
 
   // Update agent statuses when events change
@@ -216,6 +220,27 @@ function StoryReaderPage() {
                   {chapter.title}
                 </h2>
               </div>
+
+              {/* Chapter illustration */}
+              {chapter.image_url ? (
+                <figure className="mb-8 rounded-xl overflow-hidden border border-amber-200/20 shadow-lg shadow-amber-900/30 bg-slate-800/50">
+                  <img
+                    src={chapter.image_url}
+                    alt={`Illustration for ${chapter.title}`}
+                    className="w-full h-auto object-cover"
+                  />
+                  {chapter.illustration_prompt && (
+                    <figcaption className="px-4 py-2 text-xs text-amber-200/60 bg-slate-900/50 italic">
+                      {chapter.illustration_prompt}
+                    </figcaption>
+                  )}
+                </figure>
+              ) : isGenerating ? (
+                <div className="mb-8 rounded-xl overflow-hidden border border-amber-200/20 bg-slate-800/50 h-64">
+                  {/* Loading skeleton */}
+                  <div className="w-full h-full bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-[size:200%_100%] animate-[shimmer_2s_infinite]"></div>
+                </div>
+              ) : null}
 
               {/* Chapter content */}
               <div className="prose prose-amber prose-invert max-w-none">
