@@ -14,6 +14,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { storyPipeline } from "./mastra/workflows/story-pipeline";
+import { retryFallbackJobs } from "./services/retry-worker";
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 
@@ -237,5 +238,19 @@ const server = Bun.serve({
     }
   },
 });
+
+console.log(`\n[SandSync API] 🚀 Server running on http://localhost:${PORT}`);
+console.log(`[SandSync API] 📡 Supabase: ${SUPABASE_URL}`);
+console.log(`[SandSync API] 🤖 Ollama: ${OLLAMA_URL}\n`);
+
+// ── Start background retry worker ────────────────────────────────────────────
+
+// Run once on startup
+retryFallbackJobs().catch(err => {
+  console.warn("[RetryWorker] Initial run failed:", err.message);
+});
+
+// Then run every 5 minutes (300,000ms)
+setInterval(retryFallbackJobs, 5 * 60 * 1000);
 
 
