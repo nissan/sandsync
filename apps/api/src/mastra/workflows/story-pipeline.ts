@@ -311,9 +311,9 @@ Return ONLY valid JSON:
 
 Score below 7.5 means the draft needs revision. Be honest and rigorous.`;
 
-          // Use generateLegacy() — Ogma uses ollama-ai-provider (AI SDK v4 compat) or Anthropic
+          // Use generate() — works with both v3 (Anthropic) and v4 (Ollama) models
         // Timeout for potentially slow local models (qwen2.5 on limited hardware)
-        const ogmaResult = await ogma.generateLegacy(ogmaPrompt);
+        const ogmaResult = await ogma.generate(ogmaPrompt);
         const ogmaLatency = Date.now() - ogmaT0;
         totalOgmaLatency += ogmaLatency;
 
