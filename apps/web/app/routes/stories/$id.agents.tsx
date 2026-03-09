@@ -345,7 +345,7 @@ function AgentDebugPage() {
                               <p>{event.decision_reason}</p>
                             ) : Array.isArray(event.decision_reason) ? (
                               <ul className="space-y-1">
-                                {event.decision_reason.map((item, i) => (
+                                {(event.decision_reason as string[]).map((item: string, i: number) => (
                                   <li key={i} className="flex gap-2">
                                     <span className="text-amber-600/70">•</span>
                                     <span>{item}</span>
