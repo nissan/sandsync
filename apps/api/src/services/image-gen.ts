@@ -112,11 +112,12 @@ async function tryFalImage(
         num_inference_steps: 4,
         num_images: 1,
       },
-    }) as { images?: Array<{ url?: string; content_type?: string }> };
+    }) as { data?: { images?: Array<{ url?: string; content_type?: string }> }; images?: Array<{ url?: string; content_type?: string }> };
 
     clearTimeout(timeoutId);
 
-    const imageUrl = result?.images?.[0]?.url;
+    // fal.subscribe wraps response in .data (newer SDK) — check both shapes
+    const imageUrl = result?.data?.images?.[0]?.url ?? result?.images?.[0]?.url;
     if (!imageUrl) {
       console.warn("[ImageGen] fal.ai returned no image URL");
       return { url: null, cost_usd: 0 };

@@ -25,6 +25,7 @@ import {
   estimateImageCost,
 } from "../../services/image-gen";
 import { generateKokoroAudio, uploadKokoroAudio } from "../../services/kokoro";
+import { generateNarrationDeepgram } from "../../services/deepgram-tts";
 import { generateFluxImage, uploadFluxImage } from "../../services/flux";
 import { generateChapterVideoBackground } from "../../services/video-gen";
 
@@ -441,10 +442,30 @@ Return ONLY valid JSON with the same structure as before.`;
             clearTimeout(timeoutId);
             const isQuota = err?.status === 429 || err?.message?.includes("quota");
             console.warn(
-              `  [Devi] ⚠️  ElevenLabs failed (${err?.message}) — falling back to Kokoro`
+              `  [Devi] ⚠️  ElevenLabs failed (${err?.message}) — trying Deepgram TTS`
             );
 
-            // Fallback to Kokoro TTS
+            // Fallback 1: Deepgram Aura TTS (uses DEEPGRAM_API_KEY, ~$0.015/1k chars)
+            const deepgramNarration = await generateNarrationDeepgram(textToNarrate);
+            if (deepgramNarration) {
+              audioUrl = await uploadKokoroAudio(deepgramNarration.audioBuffer, storyId, chapterNum);
+              audioSource = "deepgram";
+              const deviLatency = Date.now() - deviT0;
+              deviTrace = {
+                latency_ms: deviLatency,
+                source: "deepgram",
+                cost_usd: parseFloat(((textToNarrate.length / 1000) * 0.015).toFixed(4)),
+              };
+              await supabase.from("story_chapters")
+                .update({ audio_source: "deepgram" })
+                .eq("story_id", storyId).eq("chapter_number", chapterNum);
+              await writeAgentEvent(supabase, storyId, "devi", "fallback", {
+                chapter: chapterNum, fallback_source: "deepgram", original_error: err?.message,
+              });
+              console.log(`  [Devi] ✅ Deepgram TTS audio saved`);
+            } else {
+
+            // Fallback 2: Kokoro TTS (local only — unavailable on Fly.io)
             const kokoroBuffer = await generateKokoroAudio(textToNarrate);
             if (kokoroBuffer) {
               audioUrl = await uploadKokoroAudio(kokoroBuffer, storyId, chapterNum);
@@ -485,12 +506,13 @@ Return ONLY valid JSON with the same structure as before.`;
                 `  [Devi] ✅ Kokoro audio saved (will upgrade to ElevenLabs at ${retryAfter.toISOString()})`
               );
             } else {
-              console.warn(`  [Devi] ❌ Both ElevenLabs and Kokoro failed — skipping audio`);
+              console.warn(`  [Devi] ❌ ElevenLabs + Deepgram + Kokoro all failed — skipping audio`);
               await writeAgentEvent(supabase, storyId, "devi", "failed", {
                 chapter: chapterNum,
-                error: "Both ElevenLabs and Kokoro failed",
+                error: "All TTS providers failed (ElevenLabs quota, Deepgram error, Kokoro unavailable)",
               });
             }
+            } // end deepgram else
           }
         } catch (err: any) {
           console.warn(`  [Devi] ❌ Unexpected error: ${err.message}`);
