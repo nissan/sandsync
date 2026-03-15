@@ -14,6 +14,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback } from "react";
 
+// ── Agent Event Types ──────────────────────────────────────────────────────────
+
+interface AgentEvent {
+  id: string;
+  agent: string;
+  event_type: string;
+  payload: Record<string, any>;
+  created_at: string;
+}
+
 export const Route = createFileRoute("/pipeline-demo")({
   component: PipelineDemoPage,
 });
@@ -461,6 +471,251 @@ function useVoiceRecorder() {
   return { voiceState, recordingSeconds, transcriptReview, voiceError, startRecording, stopRecording, reset, setTranscriptReview };
 }
 
+// ── Debug Panel Components ────────────────────────────────────────────────────
+
+function scoreColor(score: number): string {
+  if (score >= 8) return "bg-green-500/20 text-green-300 border-green-400/40";
+  if (score >= 7) return "bg-amber-500/20 text-amber-300 border-amber-400/40";
+  return "bg-rose-500/20 text-rose-300 border-rose-400/40";
+}
+
+function EventCard({ event }: { event: AgentEvent }) {
+  const { agent, event_type, payload } = event;
+  const cardClass = "bg-slate-800/40 border border-slate-700/30 rounded-xl p-3 space-y-1.5";
+
+  // ── Papa Bois completed ──
+  if (agent === "papa_bois" && event_type === "completed") {
+    const brief = payload.brief ?? payload;
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">🌳 Papa Bois — Brief</p>
+        {brief.title && <p className="text-xs text-amber-100"><span className="text-amber-200/50">Title:</span> {brief.title}</p>}
+        {brief.genre && <p className="text-xs text-amber-100"><span className="text-amber-200/50">Genre:</span> {brief.genre}</p>}
+        <div className="flex gap-3 flex-wrap text-xs text-amber-100/70">
+          {brief.chapter_count && <span>Chapters: {brief.chapter_count}</span>}
+          {brief.mood && <span>Mood: {brief.mood}</span>}
+        </div>
+        {brief.folklore_elements && (
+          <p className="text-xs text-amber-100"><span className="text-amber-200/50">Folklore:</span> {Array.isArray(brief.folklore_elements) ? brief.folklore_elements.join(", ") : brief.folklore_elements}</p>
+        )}
+        {brief.protagonist && <p className="text-xs text-amber-100"><span className="text-amber-200/50">Protagonist:</span> {brief.protagonist}</p>}
+        {brief.setting && <p className="text-xs text-amber-100"><span className="text-amber-200/50">Setting:</span> {brief.setting}</p>}
+        {brief.brief && (
+          <p className="text-xs text-amber-100/60 italic line-clamp-3">"{brief.brief}"</p>
+        )}
+      </div>
+    );
+  }
+
+  // ── Anansi started ──
+  if (agent === "anansi" && event_type === "started") {
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">🕷️ Anansi — Chapter {payload.chapter}</p>
+        <p className="text-xs text-amber-100/70">✍️ Writing chapter {payload.chapter} (attempt {payload.attempt})...</p>
+      </div>
+    );
+  }
+
+  // ── Anansi completed ──
+  if (agent === "anansi" && event_type === "completed") {
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">🕷️ Anansi — Chapter {payload.chapter}</p>
+        <p className="text-xs text-green-300">
+          ✓ Chapter {payload.chapter} complete — score: {payload.final_score ?? "?"}, {payload.revisions ?? 0} revisions, {payload.content_length?.toLocaleString() ?? "?"} tokens
+          {payload.force_approved && <span className="ml-1 text-amber-300">(force approved)</span>}
+        </p>
+      </div>
+    );
+  }
+
+  // ── Ogma started ──
+  if (agent === "ogma" && event_type === "started") {
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">📜 Ogma — Chapter {payload.chapter}</p>
+        <p className="text-xs text-amber-100/70">🧐 Reviewing attempt {payload.attempt}...</p>
+      </div>
+    );
+  }
+
+  // ── Ogma completed ──
+  if (agent === "ogma" && event_type === "completed") {
+    const score = payload.quality_score ?? 0;
+    return (
+      <div className={cardClass}>
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-semibold text-amber-200/80">📜 Ogma — Review (attempt {payload.attempt})</p>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${scoreColor(score)}`}>
+            {score}/10
+          </span>
+        </div>
+        <p className="text-xs">
+          {payload.approved
+            ? <span className="text-green-300">✓ Approved</span>
+            : <span className="text-rose-300">❌ Quality below threshold</span>
+          }
+          {payload.latency_ms && <span className="text-amber-200/30 ml-2">{payload.latency_ms}ms</span>}
+        </p>
+      </div>
+    );
+  }
+
+  // ── Imagen completed ──
+  if (agent === "imagen" && event_type === "completed") {
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">🎨 fal.ai FLUX — Chapter {payload.chapter}</p>
+        {payload.image_url && (
+          <img
+            src={payload.image_url}
+            alt={`Chapter ${payload.chapter} illustration`}
+            className="w-full max-h-32 object-cover rounded-lg"
+          />
+        )}
+        <div className="flex items-center gap-3 text-xs text-amber-200/50">
+          {payload.source && <span className="bg-slate-700/50 px-1.5 py-0.5 rounded text-[10px]">{payload.source}</span>}
+          {payload.cost_usd != null && <span>${Number(payload.cost_usd).toFixed(4)}</span>}
+          {payload.latency_ms && <span>{payload.latency_ms.toLocaleString()}ms</span>}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Devi completed ──
+  if (agent === "devi" && event_type === "completed") {
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">🔊 ElevenLabs — Chapter {payload.chapter}</p>
+        <p className="text-xs text-green-300">
+          ✓ Audio ready
+          {payload.source && <span className="text-amber-200/50 ml-1">({payload.source}</span>}
+          {payload.latency_ms && <span className="text-amber-200/50">, {payload.latency_ms}ms)</span>}
+        </p>
+      </div>
+    );
+  }
+
+  // ── Devi failed ──
+  if (agent === "devi" && event_type === "failed") {
+    const shortError = typeof payload.error === "string"
+      ? payload.error.slice(0, 80)
+      : "Unknown error";
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">🔊 ElevenLabs — Chapter {payload.chapter}</p>
+        <p className="text-xs text-rose-300">❌ Audio failed: {shortError}</p>
+      </div>
+    );
+  }
+
+  // ── Pipeline completed ──
+  if (agent === "pipeline" && event_type === "completed") {
+    return (
+      <div className="bg-green-500/10 border border-green-400/30 rounded-xl p-3 space-y-2">
+        <p className="text-xs font-semibold text-green-300">✅ Pipeline Complete</p>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          {payload.total_chapters != null && (
+            <span className="text-amber-100/70">Chapters: <span className="text-amber-100">{payload.total_chapters}</span></span>
+          )}
+          {payload.total_cost_usd != null && (
+            <span className="text-amber-100/70">Cost: <span className="text-amber-100">${Number(payload.total_cost_usd).toFixed(4)}</span></span>
+          )}
+          {payload.total_latency_ms != null && (
+            <span className="text-amber-100/70">Time: <span className="text-amber-100">{(payload.total_latency_ms / 1000).toFixed(1)}s</span></span>
+          )}
+        </div>
+        {payload.latency_breakdown && typeof payload.latency_breakdown === "object" && (
+          <div className="text-[10px] text-amber-200/30 space-y-0.5">
+            {Object.entries(payload.latency_breakdown as Record<string, number>).map(([k, v]) => (
+              <div key={k} className="flex justify-between">
+                <span>{k}</span>
+                <span>{typeof v === "number" ? `${(v / 1000).toFixed(1)}s` : String(v)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Fallback ──
+  return (
+    <div className={cardClass}>
+      <p className="text-xs text-amber-200/40 font-mono">{agent} / {event_type}</p>
+    </div>
+  );
+}
+
+function useAgentEvents(storyId: string | null, isRunning: boolean, isComplete: boolean) {
+  const [events, setEvents] = useState<AgentEvent[]>([]);
+  const seenIds = useRef(new Set<string>());
+
+  useEffect(() => {
+    if (!storyId || storyId.startsWith("demo-")) return;
+
+    const apiUrl = (import.meta.env as any).VITE_API_URL || "http://localhost:3002";
+
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/stories/${storyId}/events`);
+        if (!res.ok) return;
+        const data = (await res.json()) as AgentEvent[];
+        const newEvents = data.filter((e) => !seenIds.current.has(e.id));
+        if (newEvents.length > 0) {
+          newEvents.forEach((e) => seenIds.current.add(e.id));
+          setEvents((prev) => [...prev, ...newEvents]);
+        }
+      } catch {}
+    };
+
+    fetchEvents();
+    if (!isComplete) {
+      const interval = setInterval(fetchEvents, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [storyId, isComplete]);
+
+  // Reset when storyId changes
+  useEffect(() => {
+    setEvents([]);
+    seenIds.current = new Set();
+  }, [storyId]);
+
+  return events;
+}
+
+function DebugPanel({ storyId, events }: { storyId: string; events: AgentEvent[] }) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [events.length]);
+
+  return (
+    <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-4 flex flex-col h-full min-h-0">
+      <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+        <h2 className="text-sm font-semibold text-amber-100">🔍 Pipeline Output</h2>
+        <span className="text-[10px] text-amber-200/30 font-mono ml-auto">
+          {storyId.slice(0, 8)}…
+        </span>
+      </div>
+      <div className="flex-1 overflow-y-auto space-y-2 min-h-0 max-h-[600px] pr-1">
+        {events.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center space-y-2">
+            <div className="w-6 h-6 rounded-full border-2 border-amber-400/40 border-t-amber-400 animate-spin" />
+            <p className="text-xs text-amber-200/30">Waiting for agent events…</p>
+          </div>
+        ) : (
+          events.map((event) => <EventCard key={event.id} event={event} />)
+        )}
+        <div ref={bottomRef} />
+      </div>
+    </div>
+  );
+}
+
 // ── Story Preview Component ────────────────────────────────────────────────────
 
 function StoryPreviewPanel({ storyId }: { storyId: string }) {
@@ -669,6 +924,9 @@ function PipelineDemoPage() {
   const isComplete = steps.published === "complete";
   const voiceUsed = steps.deepgram_stt !== "idle";
 
+  const agentEvents = useAgentEvents(storyId, isRunning, isComplete);
+  const showDebugPanel = storyId !== null && !storyId.startsWith("demo-");
+
   const currentProgress = progressLabel(steps, statusMsg);
 
   return (
@@ -684,10 +942,10 @@ function PipelineDemoPage() {
         </p>
       </div>
 
-      {/* 2-column split */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* ── LEFT: Story Form (2/5) ─────────────────────────────────────── */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Grid: 2-col → 3-col (lg) when debug panel active */}
+      <div className={`grid grid-cols-1 gap-6 ${showDebugPanel ? "lg:grid-cols-7" : "lg:grid-cols-5"}`}>
+        {/* ── LEFT: Story Form ─────────────────────────────────────────── */}
+        <div className={`${showDebugPanel ? "lg:col-span-2" : "lg:col-span-2"} space-y-4`}>
           <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-5">
             <h2 className="text-base font-semibold text-amber-100 mb-4">
               Submit a Story
@@ -975,8 +1233,8 @@ function PipelineDemoPage() {
           </div>
         </div>
 
-        {/* ── RIGHT: Pipeline Visualisation (3/5) ──────────────────────── */}
-        <div className="lg:col-span-3">
+        {/* ── MIDDLE: Pipeline Visualisation ───────────────────────────── */}
+        <div className={showDebugPanel ? "lg:col-span-3" : "lg:col-span-3"}>
           <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50 p-5 space-y-1">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-semibold text-amber-100">
@@ -1175,6 +1433,29 @@ function PipelineDemoPage() {
             <StoryPreviewPanel storyId={storyId} />
           )}
         </div>
+
+        {/* ── RIGHT: Debug/Output Panel (desktop 3rd col, mobile accordion) ── */}
+        {showDebugPanel && (
+          <>
+            {/* Desktop: 3rd column */}
+            <div className="hidden lg:block lg:col-span-2">
+              <DebugPanel storyId={storyId!} events={agentEvents} />
+            </div>
+
+            {/* Mobile: collapsible accordion below */}
+            <div className="lg:hidden col-span-full">
+              <details className="group bg-slate-800/50 backdrop-blur-lg rounded-2xl border border-slate-700/50">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none text-sm font-semibold text-amber-100">
+                  <span>🔍 Show Pipeline Outputs</span>
+                  <span className="text-amber-200/40 group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div className="px-4 pb-4">
+                  <DebugPanel storyId={storyId!} events={agentEvents} />
+                </div>
+              </details>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

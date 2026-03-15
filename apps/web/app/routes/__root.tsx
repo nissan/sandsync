@@ -101,6 +101,12 @@ function RootComponent() {
                 🏗️ demo
               </a>
               <a
+                href="/showcase"
+                className="text-[11px] text-amber-200/50 hover:text-amber-200/80 transition-colors px-2 py-1 rounded hover:bg-amber-500/10 font-mono"
+              >
+                🌴 Showcase
+              </a>
+              <a
                 href="/pipeline-demo"
                 className="text-[11px] text-amber-200/50 hover:text-amber-200/80 transition-colors px-2 py-1 rounded hover:bg-amber-500/10 font-mono"
               >

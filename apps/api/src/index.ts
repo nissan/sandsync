@@ -227,6 +227,44 @@ async function handleGetStory(storyId: string, corsHeaders: Record<string, strin
   return json({ ...story, chapters: chapters ?? [] }, 200, corsHeaders);
 }
 
+async function handleGetStoryEvents(storyId: string, corsHeaders: Record<string, string>): Promise<Response> {
+  const { data } = await supabase
+    .from("agent_events")
+    .select("id, agent, event_type, payload, created_at")
+    .eq("story_id", storyId)
+    .order("created_at");
+  return json(data ?? [], 200, corsHeaders);
+}
+
+async function handleListStories(corsHeaders: Record<string, string>): Promise<Response> {
+  const { data: stories } = await supabase
+    .from("stories")
+    .select("id, title, genre, status, created_at")
+    .eq("status", "complete")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (!stories) return json([], 200, corsHeaders);
+
+  const storyIds = stories.map((s: any) => s.id);
+  const { data: chapters } = await supabase
+    .from("story_chapters")
+    .select("story_id, chapter_number, content, image_url, audio_url")
+    .in("story_id", storyIds)
+    .eq("chapter_number", 1);
+
+  const chapterMap = Object.fromEntries(((chapters ?? []) as any[]).map((c: any) => [c.story_id, c]));
+
+  return json((stories as any[]).map((s: any) => ({
+    ...s,
+    first_chapter: chapterMap[s.id] ? {
+      excerpt: chapterMap[s.id].content?.slice(0, 200),
+      image_url: chapterMap[s.id].image_url,
+      audio_url: chapterMap[s.id].audio_url,
+    } : null,
+  })), 200, corsHeaders);
+}
+
 async function handleGetStoryPreview(storyId: string, corsHeaders: Record<string, string>): Promise<Response> {
   const { data: story, error } = await supabase
     .from("stories")
@@ -372,8 +410,17 @@ const server = Bun.serve({
         return await handlePostStoryTranscribe(req, corsHeaders);
       }
 
+      if (pathname === "/stories" && method === "GET") {
+        return await handleListStories(corsHeaders);
+      }
+
       if (pathname === "/stories" && method === "POST") {
         return await handlePostStory(req, corsHeaders);
+      }
+
+      const eventsMatch = pathname.match(/^\/stories\/([^/]+)\/events$/);
+      if (eventsMatch && method === "GET") {
+        return await handleGetStoryEvents(eventsMatch[1], corsHeaders);
       }
 
       const statusMatch = pathname.match(/^\/stories\/([^/]+)\/status$/);

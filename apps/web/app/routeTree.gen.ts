@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as PipelineDemoRouteImport } from './routes/pipeline-demo'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as AgentsDemoRouteImport } from './routes/agents-demo'
@@ -16,6 +17,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StoriesIdRouteImport } from './routes/stories/$id'
 import { Route as StoriesIdAgentsRouteImport } from './routes/stories/$id.agents'
 
+const ShowcaseRoute = ShowcaseRouteImport.update({
+  id: '/showcase',
+  path: '/showcase',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PipelineDemoRoute = PipelineDemoRouteImport.update({
   id: '/pipeline-demo',
   path: '/pipeline-demo',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/agents-demo': typeof AgentsDemoRoute
   '/demo': typeof DemoRoute
   '/pipeline-demo': typeof PipelineDemoRoute
+  '/showcase': typeof ShowcaseRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/stories/$id/agents': typeof StoriesIdAgentsRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/agents-demo': typeof AgentsDemoRoute
   '/demo': typeof DemoRoute
   '/pipeline-demo': typeof PipelineDemoRoute
+  '/showcase': typeof ShowcaseRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/stories/$id/agents': typeof StoriesIdAgentsRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/agents-demo': typeof AgentsDemoRoute
   '/demo': typeof DemoRoute
   '/pipeline-demo': typeof PipelineDemoRoute
+  '/showcase': typeof ShowcaseRoute
   '/stories/$id': typeof StoriesIdRouteWithChildren
   '/stories/$id/agents': typeof StoriesIdAgentsRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/agents-demo'
     | '/demo'
     | '/pipeline-demo'
+    | '/showcase'
     | '/stories/$id'
     | '/stories/$id/agents'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/agents-demo'
     | '/demo'
     | '/pipeline-demo'
+    | '/showcase'
     | '/stories/$id'
     | '/stories/$id/agents'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/agents-demo'
     | '/demo'
     | '/pipeline-demo'
+    | '/showcase'
     | '/stories/$id'
     | '/stories/$id/agents'
   fileRoutesById: FileRoutesById
@@ -104,11 +116,19 @@ export interface RootRouteChildren {
   AgentsDemoRoute: typeof AgentsDemoRoute
   DemoRoute: typeof DemoRoute
   PipelineDemoRoute: typeof PipelineDemoRoute
+  ShowcaseRoute: typeof ShowcaseRoute
   StoriesIdRoute: typeof StoriesIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/showcase': {
+      id: '/showcase'
+      path: '/showcase'
+      fullPath: '/showcase'
+      preLoaderRoute: typeof ShowcaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pipeline-demo': {
       id: '/pipeline-demo'
       path: '/pipeline-demo'
@@ -171,6 +191,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsDemoRoute: AgentsDemoRoute,
   DemoRoute: DemoRoute,
   PipelineDemoRoute: PipelineDemoRoute,
+  ShowcaseRoute: ShowcaseRoute,
   StoriesIdRoute: StoriesIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
