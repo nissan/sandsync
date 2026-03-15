@@ -298,7 +298,7 @@ test.describe("SandSync Full Pipeline E2E", () => {
 
   // ── Test 5: Showcase page ─────────────────────────────────────────────────
   test("Showcase page loads story gallery", async ({ page }) => {
-    await page.goto(`${BASE_URL}/showcase`, { waitUntil: "networkidle" });
+    await page.goto(`${BASE_URL}/showcase`, { waitUntil: "domcontentloaded" });
 
     // Should show stories
     await expect(page.locator("text=Story Showcase").or(page.locator("text=Showcase")).first())
