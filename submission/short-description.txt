@@ -1,0 +1,5 @@
+SandSync is an offline-first AI storytelling platform powered by Caribbean folklore.
+
+Five mythological spirits — real AI agents — collaborate to write, narrate, and illustrate living stories. Papa Bois briefs. Anansi (Claude Sonnet 4.5) writes in Caribbean dialect. Ogma (Groq Llama 70B) reviews quality with structured feedback. Devi (ElevenLabs) narrates in a Jamaican voice. Imagen (fal.ai FLUX) paints each chapter as a Caribbean watercolour.
+
+Stories sync from Supabase Postgres → PowerSync → local SQLite. Fully readable offline. Real sync. Real local-first.
