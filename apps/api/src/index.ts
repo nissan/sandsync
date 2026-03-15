@@ -220,7 +220,7 @@ async function handleGetStory(storyId: string, corsHeaders: Record<string, strin
 
   const { data: chapters } = await supabase
     .from("story_chapters")
-    .select("id, chapter_number, title, content, reviewed_content, image_url, audio_url, quality_score, created_at")
+    .select("id, chapter_number, content, reviewed_content, image_url, audio_url, quality_score, created_at")
     .eq("story_id", storyId)
     .order("chapter_number");
 
