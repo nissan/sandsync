@@ -317,6 +317,3 @@ test.describe("SandSync Full Pipeline E2E", () => {
     console.log("✅ Story card click → reader loads correctly");
   });
 });
-click → reader loads correctly");
-  });
-});
