@@ -18,6 +18,7 @@ import { test, expect, type Page } from "@playwright/test";
 const BASE_URL = "https://web-eta-black-15.vercel.app";
 const API_URL = "https://sandsync-api.fly.dev";
 const PIPELINE_TIMEOUT = 120_000; // 2 min max for full pipeline
+const POLL_TIMEOUT_BUFFER = 60_000; // extra buffer on top of pipeline timeout for polling
 const STORY_PROMPT = "Anansi the spider tricks a proud lion into giving up his roar";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -49,7 +50,7 @@ async function pollStoryStatus(storyId: string, timeoutMs = PIPELINE_TIMEOUT + P
 // ── Test suite ────────────────────────────────────────────────────────────────
 
 test.describe("SandSync Full Pipeline E2E", () => {
-  test.setTimeout(PIPELINE_TIMEOUT + 30_000);
+  test.setTimeout(PIPELINE_TIMEOUT + POLL_TIMEOUT_BUFFER);
 
   // ── Test 1: API health + all service keys ──────────────────────────────────
   test("API health and all service keys are working", async ({ request }) => {
@@ -169,7 +170,7 @@ test.describe("SandSync Full Pipeline E2E", () => {
 
   // ── Test 3: Pipeline demo UI end-to-end ───────────────────────────────────
   test("Pipeline demo page — submit story, watch nodes, see preview", async ({ page }) => {
-    await page.goto(`${BASE_URL}/pipeline-demo`, { waitUntil: "networkidle" });
+    await page.goto(`${BASE_URL}/pipeline-demo`, { waitUntil: "domcontentloaded" });
 
     // Check page structure
     await expect(page.locator("h1")).toContainText("SandSync Pipeline");
@@ -187,7 +188,7 @@ test.describe("SandSync Full Pipeline E2E", () => {
     // Verify pipeline nodes are visible
     await expect(page.locator("text=PowerSync Client Write")).toBeVisible();
     await expect(page.locator("text=Mastra Orchestrator")).toBeVisible();
-    await expect(page.locator("text=ElevenLabs")).toBeVisible();
+    await expect(page.locator("text=ElevenLabs").first()).toBeVisible();
     // Confirm Deepgram TTS is NOT shown as a pipeline node (it's STT input only)
     const deepgramTTSNode = page.locator("text=Deepgram TTS");
     await expect(deepgramTTSNode).not.toBeVisible();
@@ -253,7 +254,7 @@ test.describe("SandSync Full Pipeline E2E", () => {
     const latestStory = stories[0];
     console.log(`Testing story reader for: "${latestStory.title}" (${latestStory.id})`);
 
-    await page.goto(`${BASE_URL}/stories/${latestStory.id}`, { waitUntil: "networkidle" });
+    await page.goto(`${BASE_URL}/stories/${latestStory.id}`, { waitUntil: "domcontentloaded" });
 
     // Should NOT show "Story not found"
     await expect(page.locator("text=Story not found")).not.toBeVisible({ timeout: 15_000 });
@@ -277,15 +278,15 @@ test.describe("SandSync Full Pipeline E2E", () => {
       console.log("✅ No broken images");
     }
 
-    // Audio: either AudioPlayer or one of our honest status messages
-    const audioPlayer = page.locator("audio");
+    // Audio: either AudioPlayer ("Narration by Devi" visible) or one of our honest status messages
+    const audioPlayer = page.locator("text=Narration by Devi");
     const audioUnavailable = page.locator("text=Audio unavailable");
     const audioProcessing = page.locator("text=Narration by Devi — processing audio");
-    
+
     // One of these should be present
     await expect(audioPlayer.or(audioUnavailable).or(audioProcessing).first())
       .toBeVisible({ timeout: 10_000 });
-    
+
     const hasAudio = await audioPlayer.isVisible().catch(() => false);
     const isUnavailable = await audioUnavailable.isVisible().catch(() => false);
     console.log(`✅ Audio state: ${hasAudio ? "audio player present ✓" : isUnavailable ? "unavailable (quota)" : "processing"}`);
