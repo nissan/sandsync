@@ -401,264 +401,9 @@ Write a significantly improved version addressing ALL the above points. Score mu
 Return ONLY valid JSON with the same structure as before.`;
       }
 
-      // ── 2c. Devi — Voice narration (with Kokoro fallback) ─────────────────────
-      // NOTE: Devi and Imagen are fully isolated — Imagen ALWAYS runs even if Devi fails.
+      // ── 2c. INSERT chapter row (text only) — media URLs added via parallel UPDATE ──
 
-      let audioUrl: string | null = null;
-      let audioSource = "elevenlabs";
-      let deviTrace: any = null;
-      const textToNarrate = currentContent;
-
-      // Devi is fully wrapped — any unhandled throw is caught here so Imagen always runs
-      try {
-      if (!dryRun) {
-        console.log(`  [Devi] 🎙️  Generating narration for chapter ${chapterNum}...`);
-        const deviT0 = Date.now();
-        await writeAgentEvent(supabase, storyId, "devi", "started", {
-          chapter: chapterNum,
-        });
-
-        try {
-          const voiceId = "dhwafD61uVd8h85wAZSE"; // Anansi's voice — the storyteller narrates
-          // ElevenLabs — full chapters take 30-40s, give 65s total
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 65_000);
-
-          try {
-            const narration = await generateNarration(textToNarrate, voiceId);
-            clearTimeout(timeoutId);
-            const deviLatency = Date.now() - deviT0;
-            const cost = estimateCost(textToNarrate, narration.modelId);
-            totalCostUsd += cost;
-
-            // Upload audio to Supabase Storage (persistent — survives Fly restarts)
-            const uploadedUrl = await uploadAudioToSupabase(narration.audioBuffer, storyId, chapterNum);
-            audioUrl = uploadedUrl || `/audio/${storyId}/chapter_${chapterNum}.mp3`; // fallback to local
-
-            deviTrace = {
-              latency_ms: deviLatency,
-              voice_id: voiceId,
-              audio_duration_s: narration.durationSeconds,
-              cost_usd: cost,
-              source: "elevenlabs",
-            };
-
-            await writeAgentEvent(supabase, storyId, "devi", "completed", {
-              chapter: chapterNum,
-              audio_url: audioUrl,
-              latency_ms: deviLatency,
-              voice_id: voiceId,
-              source: "elevenlabs",
-            });
-
-            console.log(`  [Devi] ✅ Audio saved to ${audioUrl} (${narration.durationSeconds}s, $${cost})`);
-          } catch (err: any) {
-            clearTimeout(timeoutId);
-            const isQuota = err?.status === 429 || err?.message?.includes("quota");
-            console.warn(
-              `  [Devi] ⚠️  ElevenLabs failed (${err?.message}) — trying Deepgram TTS`
-            );
-
-            // Fallback 1: Deepgram Aura TTS (uses DEEPGRAM_API_KEY, ~$0.015/1k chars)
-            const deepgramNarration = await generateNarrationDeepgram(textToNarrate);
-            if (deepgramNarration) {
-              const uploadedDeepgramUrl = await uploadAudioToSupabase(deepgramNarration.audioBuffer, storyId, chapterNum);
-              audioUrl = uploadedDeepgramUrl || `/audio/${storyId}/chapter_${chapterNum}.mp3`;
-              audioSource = "deepgram";
-              const deviLatency = Date.now() - deviT0;
-              deviTrace = {
-                latency_ms: deviLatency,
-                source: "deepgram",
-                cost_usd: parseFloat(((textToNarrate.length / 1000) * 0.015).toFixed(4)),
-              };
-              await supabase.from("story_chapters")
-                .update({ audio_source: "deepgram" })
-                .eq("story_id", storyId).eq("chapter_number", chapterNum);
-              await writeAgentEvent(supabase, storyId, "devi", "fallback", {
-                chapter: chapterNum, fallback_source: "deepgram", original_error: err?.message,
-              });
-              console.log(`  [Devi] ✅ Deepgram TTS audio saved`);
-            } else {
-
-            // Fallback 2: Kokoro TTS (local only — unavailable on Fly.io)
-            const kokoroBuffer = await generateKokoroAudio(textToNarrate);
-            if (kokoroBuffer) {
-              audioUrl = await uploadKokoroAudio(kokoroBuffer, storyId, chapterNum);
-              audioSource = "kokoro";
-              const deviLatency = Date.now() - deviT0;
-
-              // Schedule retry: quota = 1 hour, other error = 10 min
-              const retryAfter = new Date(
-                Date.now() + (isQuota ? 3_600_000 : 600_000)
-              );
-
-              // Update chapter with fallback source and retry window
-              await supabase
-                .from("story_chapters")
-                .update({
-                  audio_source: "kokoro",
-                  audio_retry_after: retryAfter.toISOString(),
-                })
-                .eq("story_id", storyId)
-                .eq("chapter_number", chapterNum);
-
-              deviTrace = {
-                latency_ms: deviLatency,
-                source: "kokoro",
-                cost_usd: 0,
-                retry_after: retryAfter.toISOString(),
-              };
-
-              await writeAgentEvent(supabase, storyId, "devi", "fallback", {
-                chapter: chapterNum,
-                audio_url: audioUrl,
-                fallback_source: "kokoro",
-                retry_after: retryAfter.toISOString(),
-                original_error: err?.message,
-              });
-
-              console.log(
-                `  [Devi] ✅ Kokoro audio saved (will upgrade to ElevenLabs at ${retryAfter.toISOString()})`
-              );
-            } else {
-              console.warn(`  [Devi] ❌ ElevenLabs + Deepgram + Kokoro all failed — skipping audio`);
-              await writeAgentEvent(supabase, storyId, "devi", "failed", {
-                chapter: chapterNum,
-                error: "All TTS providers failed (ElevenLabs quota, Deepgram error, Kokoro unavailable)",
-              });
-            }
-            } // end deepgram else
-          }
-        } catch (err: any) {
-          console.warn(`  [Devi] ❌ Unexpected error: ${err.message}`);
-          await writeAgentEvent(supabase, storyId, "devi", "failed", {
-            chapter: chapterNum,
-            error: err.message,
-          });
-        }
-      } else {
-        // Dry-run: mock audio
-        audioUrl = `/audio/${storyId}/chapter_${chapterNum}.mp3`;
-        deviTrace = {
-          latency_ms: 0,
-          voice_id: "dhwafD61uVd8h85wAZSE",
-          audio_duration_s: 0,
-          cost_usd: 0,
-          dry_run: true,
-        };
-        console.log(`  [Devi] 🔇 Dry-run mode — skipping ElevenLabs, mocking audio_url`);
-      }
-      } catch (deviGuardErr: any) {
-        // Safety net: if Devi somehow throws outside its inner try/catch, log and continue to Imagen
-        console.warn(`  [Devi] 🛡️  Guard caught unhandled error: ${deviGuardErr.message} — Imagen will still run`);
-        await writeAgentEvent(supabase, storyId, "devi", "failed", {
-          chapter: chapterNum,
-          error: `[guard] ${deviGuardErr.message}`,
-        });
-      }
-
-      // ── 2c-bis. Image generation (Gemini Imagen with Flux fallback) ────────────────────────
-
-      let imageUrl: string | null = null;
-      let imageSource = "fal";
-      let illustrationPrompt: string | null = null;
-      let imagenTrace: any = null;
-
-      if (!dryRun) {
-        console.log(`  [ImageGen] 🎨 Generating chapter illustration (cascade: fal → gemini → flux)...`);
-
-        try {
-          // Generate illustration prompt first (so we can log it in the started event)
-          illustrationPrompt = await generateIllustrationPrompt(
-            currentContent,
-            chapterNum,
-            brief.title,
-            brief.folklore_elements
-          );
-
-          await writeAgentEvent(supabase, storyId, "imagen", "started", {
-            chapter: chapterNum,
-            prompt: illustrationPrompt,
-          });
-
-          const imgResult = await generateChapterImage(
-            currentContent,
-            chapterNum,
-            brief.title,
-            brief.folklore_elements,
-            storyId,
-            illustrationPrompt  // pass through so it doesn't regenerate
-          );
-
-          imageUrl = imgResult.imageUrl;
-          imageSource = imgResult.source;
-          totalCostUsd += imgResult.cost_usd;
-
-          imagenTrace = {
-            latency_ms: imgResult.latency_ms,
-            source: imgResult.source,
-            cost_usd: imgResult.cost_usd,
-            error: imgResult.error,
-          };
-
-          if (imgResult.imageUrl) {
-            await writeAgentEvent(supabase, storyId, "imagen", "completed", {
-              chapter: chapterNum,
-              image_url: imgResult.imageUrl,
-              prompt: illustrationPrompt,
-              latency_ms: imgResult.latency_ms,
-              cost_usd: imgResult.cost_usd,
-              source: imgResult.source,
-            });
-
-            // If flux was used as fallback, schedule upgrade retry
-            if (imgResult.source === "flux") {
-              const retryAfter = new Date(Date.now() + 600_000);
-              await supabase
-                .from("story_chapters")
-                .update({
-                  image_source: "flux",
-                  image_retry_after: retryAfter.toISOString(),
-                })
-                .eq("story_id", storyId)
-                .eq("chapter_number", chapterNum);
-            }
-
-            console.log(
-              `  [ImageGen] ✅ Illustration via ${imgResult.source} (${imgResult.latency_ms}ms, $${imgResult.cost_usd})`
-            );
-          } else {
-            await writeAgentEvent(supabase, storyId, "imagen", "failed", {
-              chapter: chapterNum,
-              error: imgResult.error || "All providers failed",
-            });
-            console.warn(`  [ImageGen] ❌ All image providers failed`);
-          }
-        } catch (err: any) {
-          console.warn(`  [ImageGen] ❌ Unexpected error: ${err.message}`);
-          await writeAgentEvent(supabase, storyId, "imagen", "failed", {
-            chapter: chapterNum,
-            error: err.message,
-          });
-          imagenTrace = { latency_ms: 0, error: err.message, cost_usd: 0 };
-        }
-      } else {
-        // Dry-run: mock image
-        illustrationPrompt =
-          "Lush Caribbean watercolor illustration of a spirit emerging from the forest.";
-        imageUrl = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`;
-        imagenTrace = {
-          latency_ms: 0,
-          source: "fal",
-          cost_usd: 0,
-          dry_run: true,
-        };
-        console.log(`  [ImageGen] 🔇 Dry-run mode — mocking image`);
-      }
-
-      // ── 2d. Write chapter to Supabase ──────────────────────────────────────
-
-      const agentTrace = {
+      const agentTraceBase = {
         papa_bois: {
           latency_ms: papaBoisLatency,
           model: "claude-haiku-4-5",
@@ -678,8 +423,8 @@ Return ONLY valid JSON with the same structure as before.`;
           changes_made: finalOgmaReview?.changes_made || [],
           force_approved: forceApproved,
         },
-        devi: deviTrace,
-        imagen: imagenTrace,
+        devi: null as any,
+        imagen: null as any,
       };
 
       const { error: chapterError } = await supabase
@@ -687,31 +432,212 @@ Return ONLY valid JSON with the same structure as before.`;
         .insert({
           story_id: storyId,
           chapter_number: chapterNum,
-          content: currentContent, // Anansi's final draft (after revision)
+          content: currentContent,
           reviewed_content: finalOgmaReview?.reviewed_content || currentContent,
           quality_score: finalOgmaScore,
-          agent_trace: agentTrace,
-          image_url: imageUrl ?? null,
-          audio_url: audioUrl ?? null,
-          image_source: imageSource ?? null,
-          audio_source: audioSource ?? null,
-          illustration_prompt: illustrationPrompt ?? null,
+          agent_trace: agentTraceBase,
         });
 
       if (chapterError) {
         console.error(`[Chapter ${chapterNum}] ❌ DB write failed:`, chapterError.message);
       } else {
-        console.log(`[Chapter ${chapterNum}] ✅ Written to Supabase (score: ${finalOgmaScore.toFixed(1)}, revisions: ${revisionHistory.length - 1})`);
+        console.log(`[Chapter ${chapterNum}] ✅ Chapter row created — starting Devi & Imagen in parallel...`);
+      }
 
-        // ── Background video generation (non-blocking) ──────────────────────
-        if (!dryRun) {
-          const videoPrompt = illustrationPrompt || currentContent.slice(0, 300);
-          // Fire-and-forget — don't await, don't block story completion
-          generateChapterVideoBackground(videoPrompt, storyId, chapterNum).catch(
-            (err) => console.warn(`[VideoGen] Background task error (ch${chapterNum}):`, err)
-          );
-          console.log(`  [VideoGen] 🎬 Video generation queued for chapter ${chapterNum}`);
+      // ── 2d. Devi (audio) & Imagen (image) — fully isolated, run in parallel ──
+      // Each saves its own result independently; a failure in one does NOT affect the other.
+
+      let audioUrl: string | null = null;
+      let imageUrl: string | null = null;
+      let illustrationPrompt: string | null = null;
+
+      if (!dryRun) {
+        // ── Devi task ──────────────────────────────────────────────────────────
+        const deviTask = async (): Promise<void> => {
+          const textToNarrate = currentContent;
+          const voiceId = "dhwafD61uVd8h85wAZSE";
+          const deviT0 = Date.now();
+          let deviTrace: any = null;
+          let audioSource = "elevenlabs";
+
+          console.log(`  [Devi] 🎙️  Generating narration for chapter ${chapterNum}...`);
+          await writeAgentEvent(supabase, storyId, "devi", "started", { chapter: chapterNum });
+
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 65_000);
+
+            try {
+              const narration = await generateNarration(textToNarrate, voiceId);
+              clearTimeout(timeoutId);
+              const deviLatency = Date.now() - deviT0;
+              const cost = estimateCost(textToNarrate, narration.modelId);
+              totalCostUsd += cost;
+
+              const uploadedUrl = await uploadAudioToSupabase(narration.audioBuffer, storyId, chapterNum);
+              audioUrl = uploadedUrl || `/audio/${storyId}/chapter_${chapterNum}.mp3`;
+
+              deviTrace = {
+                latency_ms: deviLatency,
+                voice_id: voiceId,
+                audio_duration_s: narration.durationSeconds,
+                cost_usd: cost,
+                source: "elevenlabs",
+              };
+
+              await writeAgentEvent(supabase, storyId, "devi", "completed", {
+                chapter: chapterNum, audio_url: audioUrl, latency_ms: deviLatency,
+                voice_id: voiceId, source: "elevenlabs",
+              });
+              console.log(`  [Devi] ✅ Audio saved (${narration.durationSeconds}s, $${cost})`);
+            } catch (err: any) {
+              clearTimeout(timeoutId);
+              const isQuota = err?.status === 429 || err?.message?.includes("quota");
+              console.warn(`  [Devi] ⚠️  ElevenLabs failed (${err?.message}) — trying Deepgram TTS`);
+
+              const deepgramNarration = await generateNarrationDeepgram(textToNarrate);
+              if (deepgramNarration) {
+                const uploadedDeepgramUrl = await uploadAudioToSupabase(deepgramNarration.audioBuffer, storyId, chapterNum);
+                audioUrl = uploadedDeepgramUrl || `/audio/${storyId}/chapter_${chapterNum}.mp3`;
+                audioSource = "deepgram";
+                deviTrace = {
+                  latency_ms: Date.now() - deviT0,
+                  source: "deepgram",
+                  cost_usd: parseFloat(((textToNarrate.length / 1000) * 0.015).toFixed(4)),
+                };
+                await writeAgentEvent(supabase, storyId, "devi", "fallback", {
+                  chapter: chapterNum, fallback_source: "deepgram", original_error: err?.message,
+                });
+                console.log(`  [Devi] ✅ Deepgram TTS audio saved`);
+              } else {
+                const kokoroBuffer = await generateKokoroAudio(textToNarrate);
+                if (kokoroBuffer) {
+                  audioUrl = await uploadKokoroAudio(kokoroBuffer, storyId, chapterNum);
+                  audioSource = "kokoro";
+                  const retryAfter = new Date(Date.now() + (isQuota ? 3_600_000 : 600_000));
+                  deviTrace = { latency_ms: Date.now() - deviT0, source: "kokoro", cost_usd: 0, retry_after: retryAfter.toISOString() };
+                  await writeAgentEvent(supabase, storyId, "devi", "fallback", {
+                    chapter: chapterNum, audio_url: audioUrl, fallback_source: "kokoro",
+                    retry_after: retryAfter.toISOString(), original_error: err?.message,
+                  });
+                  console.log(`  [Devi] ✅ Kokoro audio saved`);
+                } else {
+                  console.warn(`  [Devi] ❌ All TTS providers failed`);
+                  await writeAgentEvent(supabase, storyId, "devi", "failed", {
+                    chapter: chapterNum, error: "All TTS providers failed",
+                  });
+                }
+              }
+            }
+          } catch (err: any) {
+            console.warn(`  [Devi] ❌ Unexpected error: ${err.message}`);
+            await writeAgentEvent(supabase, storyId, "devi", "failed", { chapter: chapterNum, error: err.message });
+          }
+
+          // Save audio result independently, regardless of Imagen outcome
+          if (audioUrl) {
+            await supabase.from("story_chapters")
+              .update({ audio_url: audioUrl, audio_source: audioSource, ...(deviTrace ? { agent_trace: { ...agentTraceBase, devi: deviTrace } } : {}) })
+              .eq("story_id", storyId).eq("chapter_number", chapterNum);
+          }
+        };
+
+        // ── Imagen task ────────────────────────────────────────────────────────
+        const imagenTask = async (): Promise<void> => {
+          const imagenT0 = Date.now();
+          let imagenTrace: any = null;
+          let imageSource = "fal";
+
+          console.log(`  [Imagen] 🎨 Generating chapter illustration...`);
+
+          try {
+            illustrationPrompt = await generateIllustrationPrompt(
+              currentContent, chapterNum, brief.title, brief.folklore_elements
+            );
+
+            await writeAgentEvent(supabase, storyId, "imagen", "started", {
+              chapter: chapterNum, prompt: illustrationPrompt,
+            });
+
+            const imgResult = await generateChapterImage(
+              currentContent, chapterNum, brief.title, brief.folklore_elements, storyId, illustrationPrompt
+            );
+
+            imageUrl = imgResult.imageUrl;
+            imageSource = imgResult.source;
+            totalCostUsd += imgResult.cost_usd;
+
+            imagenTrace = {
+              latency_ms: imgResult.latency_ms,
+              source: imgResult.source,
+              cost_usd: imgResult.cost_usd,
+              error: imgResult.error,
+            };
+
+            if (imgResult.imageUrl) {
+              await writeAgentEvent(supabase, storyId, "imagen", "completed", {
+                chapter: chapterNum, image_url: imgResult.imageUrl,
+                prompt: illustrationPrompt, latency_ms: imgResult.latency_ms,
+                cost_usd: imgResult.cost_usd, source: imgResult.source,
+              });
+              console.log(`  [Imagen] ✅ Illustration via ${imgResult.source} (${imgResult.latency_ms}ms, $${imgResult.cost_usd})`);
+            } else {
+              await writeAgentEvent(supabase, storyId, "imagen", "failed", {
+                chapter: chapterNum, error: imgResult.error || "All providers failed",
+              });
+              console.warn(`  [Imagen] ❌ All image providers failed`);
+            }
+          } catch (err: any) {
+            console.warn(`  [Imagen] ❌ Unexpected error: ${err.message}`);
+            await writeAgentEvent(supabase, storyId, "imagen", "failed", { chapter: chapterNum, error: err.message });
+            imagenTrace = { latency_ms: Date.now() - imagenT0, error: err.message, cost_usd: 0 };
+          }
+
+          // Save image result independently, regardless of Devi outcome
+          const imgUpdates: Record<string, any> = { image_source: imageSource };
+          if (imageUrl) imgUpdates.image_url = imageUrl;
+          if (illustrationPrompt) imgUpdates.illustration_prompt = illustrationPrompt;
+          if (imagenTrace) imgUpdates.agent_trace = { ...agentTraceBase, imagen: imagenTrace };
+
+          // Schedule retry if flux fallback
+          if (imageSource === "flux") {
+            imgUpdates.image_retry_after = new Date(Date.now() + 600_000).toISOString();
+          }
+
+          await supabase.from("story_chapters")
+            .update(imgUpdates)
+            .eq("story_id", storyId).eq("chapter_number", chapterNum);
+        };
+
+        // Run Devi and Imagen in parallel — allSettled ensures both run regardless of errors
+        console.log(`  [Pipeline] ⚡ Running Devi + Imagen in parallel...`);
+        const [deviResult, imagenResult] = await Promise.allSettled([deviTask(), imagenTask()]);
+
+        if (deviResult.status === "rejected") {
+          console.error(`  [Devi] 💥 Unhandled rejection: ${deviResult.reason}`);
         }
+        if (imagenResult.status === "rejected") {
+          console.error(`  [Imagen] 💥 Unhandled rejection: ${imagenResult.reason}`);
+        }
+
+        console.log(`[Chapter ${chapterNum}] ✅ Parallel media generation complete`);
+
+        // ── Background video generation (non-blocking) ────────────────────────
+        const videoPrompt = illustrationPrompt || currentContent.slice(0, 300);
+        generateChapterVideoBackground(videoPrompt, storyId, chapterNum).catch(
+          (err) => console.warn(`[VideoGen] Background task error (ch${chapterNum}):`, err)
+        );
+        console.log(`  [VideoGen] 🎬 Video generation queued for chapter ${chapterNum}`);
+
+      } else {
+        // Dry-run: mock both
+        audioUrl = `/audio/${storyId}/chapter_${chapterNum}.mp3`;
+        illustrationPrompt = "Lush Caribbean watercolor illustration of a spirit emerging from the forest.";
+        imageUrl = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`;
+        console.log(`  [Devi+Imagen] 🔇 Dry-run mode — mocking audio and image`);
+        await supabase.from("story_chapters")
+          .update({ audio_url: audioUrl, image_url: imageUrl, illustration_prompt: illustrationPrompt })
+          .eq("story_id", storyId).eq("chapter_number", chapterNum);
       }
 
       await writeAgentEvent(supabase, storyId, "anansi", "completed", {

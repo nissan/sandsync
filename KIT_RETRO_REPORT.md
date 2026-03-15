@@ -1,101 +1,104 @@
-# Kit Retro Generation Report
+# SandSync Retro Generate — Kit's Report
+
 **Date:** 2026-03-16  
-**Agent:** Kit (backend specialist)
+**Session:** kit-retro-v2  
+**Status:** ✅ All steps complete
+
+---
+
+## Step 1 — Retro Image & Audio Backfill
+
+### Discovery
+After checking Supabase directly, the actual state before this run was:
+- Stories 3ad4ba52 (The Shopkeeper's Gift) and f0edceb5 (The Girl Between the Silk Cotton Trees) already had both image and audio populated.
+- Stories 97105ad2, c2165ace, and e5bc058e were missing **images only** (audio was already present from a prior run).
+
+### Images Backfilled (Gemini Imagen 4.0 Fast)
+fal.ai key was not available in 1Password — used Gemini `imagen-4.0-fast-generate-001` as primary.
+
+| Story ID | Title | Image Source | Status |
+|----------|-------|-------------|--------|
+| 97105ad2 | The Waterfall's Blessing | Gemini Imagen 4.0 Fast | ✅ Uploaded + DB updated |
+| c2165ace | The Mahogany Boundary | Gemini Imagen 4.0 Fast | ✅ Uploaded + DB updated (used safe forest prompt, original machete snippet filtered by Gemini) |
+| e5bc058e | The Fisherman's Midnight Bargain | Gemini Imagen 4.0 Fast | ✅ Uploaded + DB updated |
+
+### Audio Status
+All 5 originally-listed stories already had audio URLs populated. No ElevenLabs calls needed.
+
+### Final Verification
+```
+All 12 stories:
+97105ad2 img:✅ audio:✅ The Waterfall's Blessing
+c2165ace img:✅ audio:✅ The Mahogany Boundary
+e5bc058e img:✅ audio:✅ The Fisherman's Midnight Bargain: Anansi
+3ad4ba52 img:✅ audio:✅ The Shopkeeper's Gift
+f0edceb5 img:✅ audio:✅ The Girl Between the Silk Cotton Trees
+... (all 12 stories: img:✅ audio:✅)
+```
+
+---
+
+## Step 2 — Showcase Filter Fix
+
+**File:** `apps/web/app/routes/showcase.tsx`
+
+Added inline filter to only render cards with images:
+```typescript
+{stories.filter(s => s.first_chapter?.image_url).map((s) => (
+  <StoryCardItem key={s.id} story={s} />
+))}
+```
+
+Stories without `image_url` are now silently excluded from the showcase grid.  
+✅ Confirmed — all 12 current stories have images so full showcase visible, and future imageless stories won't appear.
+
+---
+
+## Step 3 — Pipeline Isolation Fix (Devi + Imagen)
+
+**File:** `apps/api/src/mastra/workflows/story-pipeline.ts`
+
+### What Changed
+Replaced the sequential Devi-then-Imagen pattern with a **true parallel + independent save** architecture:
+
+1. **Chapter INSERT first** — text content, quality scores written to DB immediately after Ogma
+2. **`Promise.allSettled([deviTask(), imagenTask()])`** — both run concurrently
+3. **Each saves independently** — Devi UPDATEs `audio_url/audio_source`, Imagen UPDATEs `image_url/image_source/illustration_prompt`
+4. **Full isolation** — if Devi throws, `allSettled` still runs Imagen and vice versa; rejection logged but doesn't crash the chapter
+
+### Key guarantees
+- Devi failure → chapter still gets image, story still completes ✅
+- Imagen failure → chapter still gets audio, story still completes ✅
+- Both save independently without racing on a single INSERT ✅
+- `Promise.allSettled` used (not `Promise.all`) — no short-circuit on first failure ✅
+
+---
+
+## Step 4 — Deploy
+
+### API (Fly.io)
+- **App:** `sandsync-api`
+- **Strategy:** immediate
+- **Status:** ✅ Deployed — both machines updated and healthy
+- **URL:** https://sandsync-api.fly.dev
+
+### Frontend (Vercel)
+- **Project:** `web` (nissan-dookerans-projects-0352048f)
+- **Status:** ✅ Deployed to production
+- **URL:** https://web-eta-black-15.vercel.app
+- **Build:** Clean Vite build, 8.33s
 
 ---
 
 ## Summary
 
-Fixed 3 backend issues with the SandSync API/app. All 11 stories now have both images and audio.
+| Task | Status | Notes |
+|------|--------|-------|
+| Retro image backfill (3 stories) | ✅ Done | Used Gemini Imagen 4.0 Fast (fal.ai key not in 1Password) |
+| Retro audio backfill | ✅ Already done | All 5 stories already had audio |
+| Showcase filter (images only) | ✅ Done | Filter added to render loop |
+| Pipeline Devi/Imagen isolation | ✅ Done | `Promise.allSettled` + independent DB saves |
+| API deploy | ✅ Done | Immediate strategy, both machines healthy |
+| Frontend deploy | ✅ Done | Clean build, aliased to production |
 
----
-
-## Task 1: Retro-generate Missing Images & Audio ✅
-
-**Problem:** 5 stories were missing image_url and/or audio_url on chapter 1.
-
-**Before:**
-- `3ad4ba52` — ✅ img | ❌ audio (Shopkeeper's Gift)
-- `f0edceb5` — ✅ img | ❌ audio (Girl Between the Silk Cotton Trees)
-- `97105ad2` — ❌ img | ❌ audio (Waterfall's Blessing)
-- `c2165ace` — ❌ img | ❌ audio (Mahogany Boundary)
-- `e5bc058e` — ❌ img | ❌ audio (Fisherman's Midnight Bargain)
-
-**After:** All 11+ stories have ✅ img | ✅ audio
-
-**How:**
-- `scripts/retro_generate.py` already existed with fal.ai + Gemini Imagen cascade
-- Images generated via **Gemini Imagen 4.0 Fast** (fal.ai key not available locally, only in fly.io secrets)
-- Audio generated via **ElevenLabs TTS** (voice `dhwafD61uVd8h85wAZSE` / Denzel, model `eleven_turbo_v2_5`)
-- Run with env vars: `GEMINI_KEY`, `EL_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-
-**Key fix:** Gemini Imagen API requires the API key as a URL query parameter (`?key=...`), NOT as a Bearer token header. The existing script already handled this correctly once the right env var was set.
-
----
-
-## Task 2: Fix Showcase Page to Filter Stories Without Images ✅
-
-**File:** `apps/web/app/routes/showcase.tsx`
-
-**Changes:**
-1. Added filter after fetching stories: `all.filter((s) => s.first_chapter?.image_url)`
-2. Updated header subtitle to show count: `"X stories — Previously generated Caribbean folklore"`
-
-**Effect:** Showcase page now shows only stories with cover images (no broken image placeholders).
-
----
-
-## Task 3: Isolate Imagen from Devi Failures in Pipeline ✅
-
-**File:** `apps/api/src/mastra/workflows/story-pipeline.ts`
-
-**Problem:** If Devi (TTS narration) threw an error outside its inner try/catch, Imagen (image generation) might not run.
-
-**Fix:** Wrapped the entire Devi `if (!dryRun) { ... } else { ... }` block in an outer guard:
-```typescript
-// Devi is fully wrapped — any unhandled throw is caught here so Imagen always runs
-try {
-  if (!dryRun) { /* Devi block */ } else { /* dry-run mock */ }
-} catch (deviGuardErr: any) {
-  console.warn(`  [Devi] 🛡️  Guard caught unhandled error: ${deviGuardErr.message} — Imagen will still run`);
-  await writeAgentEvent(supabase, storyId, "devi", "failed", { ... });
-}
-// Imagen runs here regardless
-```
-
-Note: The original structure already had inner try/catches. This outer guard is a belt-and-suspenders safety net to ensure imagen ALWAYS runs, even in edge cases.
-
----
-
-## Deployments
-
-- **API:** `flyctl deploy --app sandsync-api --strategy immediate` ✅
-- **Frontend:** `npx vercel --prod` → https://web-eta-black-15.vercel.app ✅
-
----
-
-## Verification
-
-```
-45efd1b9 | img ✅ | aud ✅ | The Fisherman's Bargain: What Mama Dlo T
-40548f3d | img ✅ | aud ✅ | The Fisherman's Bargain: What Mama Dlo T
-c8e42300 | img ✅ | aud ✅ | The Last Fare
-33bc0729 | img ✅ | aud ✅ | The Voice of Mama Dlo
-8a1b6e07 | img ✅ | aud ✅ | Anansi and the Lion's Stolen Thunder
-a870513f | img ✅ | aud ✅ | Anansi and the Lion's Pride
-888b6736 | img ✅ | aud ✅ | The Parrot's Message
-3ad4ba52 | img ✅ | aud ✅ | The Shopkeeper's Gift
-f0edceb5 | img ✅ | aud ✅ | The Girl Between the Silk Cotton Trees
-97105ad2 | img ✅ | aud ✅ | The Waterfall's Blessing
-c2165ace | img ✅ | aud ✅ | The Mahogany Boundary
-e5bc058e | img ✅ | aud ✅ | The Fisherman's Midnight Bargain: Anansi
-```
-
----
-
-## Notes
-
-- The audio from the first run (`briny-cedar` session) actually succeeded for ALL missing audio stories (11 chapters total across 5 stories — all chapters, not just chapter 1)
-- The retro_generate.py script correctly only targets chapter 1 images as the `first_chapter` is what the `/stories` API uses for cover images
-- FAL_KEY is stored in fly.io secrets but not locally — Gemini Imagen was used as the image provider instead (same visual quality)
-- Commit: `8ef9940`
+**Script:** `scripts/retro_generate.py` — reusable for future backfill runs.
