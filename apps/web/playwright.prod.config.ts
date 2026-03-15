@@ -24,3 +24,4 @@ export default defineConfig({
   webServer: null, // Explicitly disable webServer for production tests
   // Increase test timeout to accommodate longer pipeline runs
   timeout: 360_000, // Global test timeout: 6 minutes (2min pipeline + buffer)
+});
