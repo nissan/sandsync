@@ -1,0 +1,75 @@
+{
+  "vo": {
+    "v3_intro_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_intro_vo.mp3",
+      "duration": 6.873107
+    },
+    "v3_scene_a_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_a_vo.mp3",
+      "duration": 11.749297
+    },
+    "v3_scene_b_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_b_vo.mp3",
+      "duration": 8.405624
+    },
+    "v3_scene_c1_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_c1_vo.mp3",
+      "duration": 9.938141
+    },
+    "v3_scene_c2_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_c2_vo.mp3",
+      "duration": 1.950476
+    },
+    "v3_scene_d_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_d_vo.mp3",
+      "duration": 8.870023
+    },
+    "v3_scene_e_vo_0s": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_e_vo_0s.mp3",
+      "duration": 2.414875
+    },
+    "v3_scene_e_vo_8s": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_e_vo_8s.mp3",
+      "duration": 4.597551
+    },
+    "v3_scene_e_vo_16s": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_e_vo_16s.mp3",
+      "duration": 3.622313
+    },
+    "v3_scene_e_vo_24s": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_e_vo_24s.mp3",
+      "duration": 4.272472
+    },
+    "v3_scene_e_vo_35s": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_e_vo_35s.mp3",
+      "duration": 3.900952
+    },
+    "v3_scene_f_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_scene_f_vo.mp3",
+      "duration": 5.944308
+    },
+    "v3_outro_vo": {
+      "path": "/Users/loki/projects/sandsync/demo-video/auto/vo/v3_outro_vo.mp3",
+      "duration": 10.17034
+    }
+  },
+  "slides": [
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_01.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_02.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_03.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_04.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_05.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_06.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_07.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_08.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_09.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_10.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_11.png",
+    "/Users/loki/projects/sandsync/demo-video/auto/slides/slide_12.png"
+  ],
+  "scene_b_raw": "/Users/loki/projects/sandsync/demo-video/auto/scenes/scene_b_raw.webm",
+  "scene_c_raw": "/Users/loki/projects/sandsync/demo-video/auto/scenes/scene_c_raw.webm",
+  "new_story_url": "https://web-eta-black-15.vercel.app/stories/45efd1b9-87b7-4cc8-ae8a-931abeeb9c8b",
+  "scene_e_raw": "/Users/loki/projects/sandsync/demo-video/auto/scenes/scene_e_raw.webm",
+  "scene_f_raw": "/Users/loki/projects/sandsync/demo-video/auto/scenes/scene_f_raw.webm"
+}
