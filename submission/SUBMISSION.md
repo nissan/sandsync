@@ -61,7 +61,8 @@ API: https://sandsync-api.fly.dev (Bun + Mastra on Fly.io)
 > **⚠️ To be added after recording**
 > See `DEMO_SCRIPT.md` in the repo root for the full storyboard and narration script.
 
-**Video URL:** _(paste YouTube/Loom URL here after recording)_
+**Video URL:** _(upload demo-video.mp4 to YouTube/Loom and paste URL here)_
+**Local copy:** `submission/demo-video.mp4` (27MB)
 
 The demo covers:
 1. Homepage and cultural mission

@@ -12,11 +12,10 @@ This folder contains everything needed to submit SandSync to the PowerSync AI Ha
 
 ## What's still needed before submitting
 
-1. **Record demo video** — use `../DEMO_SCRIPT.md` for the full storyboard
-2. **Upload video** to YouTube (unlisted) or Loom
-3. **Paste video URL** into `SUBMISSION.md` Section 6
-4. **Wait for submission form** — being announced on PowerSync Discord `#ai-hackathon` (discord.gg/powersync)
-5. **Submit the form** before March 20, 11:59 PM PT (= March 21, 6:59 PM AEDT)
+1. **Upload demo-video.mp4** to YouTube (unlisted) or Loom — file is in this folder (27MB)
+2. **Paste video URL** into `SUBMISSION.md` Section 6
+3. **Wait for submission form** — Loki is checking https://www.powersync.com/blog/powersync-ai-hackathon-8k-in-prizes hourly and will alert when the form link appears
+4. **Submit the form** before March 20, 11:59 PM PT (= March 21, 6:59 PM AEDT)
 
 ## Quick refs
 
