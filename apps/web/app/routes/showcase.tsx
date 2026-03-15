@@ -69,7 +69,23 @@ function getGenreGradient(genre: string): string {
 
 function formatDate(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString("en-AU", {
+    if (!iso) return "";
+    let d = new Date(iso);
+    // If the result is an implausibly far future year (PowerSync may store epoch ms as string)
+    // or if the iso string is a pure number (unix ms), parse it correctly
+    if (!isNaN(d.getTime()) && d.getFullYear() > 2100) {
+      // Might be epoch seconds stored as string — try dividing by 1000
+      const asMs = Number(iso);
+      if (!isNaN(asMs) && asMs > 1e12) {
+        // It's already ms — use directly
+        d = new Date(asMs);
+      } else if (!isNaN(asMs) && asMs > 1e9) {
+        // It's seconds — convert to ms
+        d = new Date(asMs * 1000);
+      }
+    }
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-AU", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -215,9 +231,8 @@ function ShowcasePage() {
         return r.json();
       })
       .then((data) => {
-          // Only show stories that have a cover image
           const all = data as StoryCard[];
-          setStories(all.filter((s) => s.first_chapter?.image_url));
+          setStories(all);
         })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -260,7 +275,7 @@ function ShowcasePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {stories.filter(s => s.first_chapter?.image_url).map((s) => (
+          {stories.map((s) => (
             <StoryCardItem key={s.id} story={s} />
           ))}
         </div>

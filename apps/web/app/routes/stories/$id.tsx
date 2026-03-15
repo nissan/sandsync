@@ -4,6 +4,46 @@ import { useQuery, usePowerSyncStatus } from "@powersync/react";
 import { Story, StoryChapter } from "../../lib/powersync";
 import { AudioPlayer } from "../../components/AudioPlayer";
 
+// ── Genre helpers ──────────────────────────────────────────────────────────────
+
+const GENRE_EMOJI: [string, string][] = [
+  ["anansi", "🕷️"],
+  ["papa bois", "🌳"],
+  ["papa-bois", "🌳"],
+  ["soucouyant", "🔥"],
+  ["la diablesse", "👠"],
+  ["lagahoo", "🐺"],
+  ["mama dlo", "🐍"],
+  ["mama-dlo", "🐍"],
+];
+
+const GENRE_GRADIENTS: [string, string][] = [
+  ["anansi", "from-amber-900 via-orange-800 to-yellow-900"],
+  ["papa bois", "from-green-900 via-emerald-800 to-teal-900"],
+  ["papa-bois", "from-green-900 via-emerald-800 to-teal-900"],
+  ["soucouyant", "from-red-900 via-orange-900 to-rose-900"],
+  ["la diablesse", "from-purple-900 via-violet-800 to-indigo-900"],
+  ["lagahoo", "from-zinc-900 via-slate-800 to-gray-900"],
+  ["mama dlo", "from-cyan-900 via-teal-800 to-blue-900"],
+  ["mama-dlo", "from-cyan-900 via-teal-800 to-blue-900"],
+];
+
+function getGenreEmoji(genre: string): string {
+  const lower = genre.toLowerCase();
+  for (const [key, emoji] of GENRE_EMOJI) {
+    if (lower.includes(key)) return emoji;
+  }
+  return "🌴";
+}
+
+function getGenreGradient(genre: string): string {
+  const lower = genre.toLowerCase();
+  for (const [key, grad] of GENRE_GRADIENTS) {
+    if (lower.includes(key)) return grad;
+  }
+  return "from-indigo-900 via-purple-800 to-slate-900";
+}
+
 export const Route = createFileRoute("/stories/$id")({
   component: StoryReaderPage,
 });
@@ -350,7 +390,13 @@ function StoryReaderPage() {
                   {/* Loading skeleton */}
                   <div className="w-full h-full bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-[size:200%_100%] animate-[shimmer_2s_infinite]"></div>
                 </div>
-              ) : null}
+              ) : (
+                <figure className="mb-8 rounded-xl overflow-hidden border border-amber-200/20 shadow-lg shadow-amber-900/30 bg-slate-800/50 h-64 flex items-center justify-center">
+                  <div className={`w-full h-full bg-gradient-to-br ${getGenreGradient(story?.genre ?? "")} flex items-center justify-center`}>
+                    <span className="text-7xl opacity-40">{getGenreEmoji(story?.genre ?? "")}</span>
+                  </div>
+                </figure>
+              )}
 
               {/* Chapter content */}
               <div className="prose prose-amber prose-invert max-w-none">

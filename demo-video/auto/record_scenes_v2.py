@@ -418,12 +418,58 @@ async def scene_e(browser, meta: dict):
 # ─────────────────────────────────────────────
 # SCENE F — Result (~20s)
 # ─────────────────────────────────────────────
+async def poll_story_complete(story_id: str, timeout_s: int = 180) -> bool:
+    """Poll /stories/:id/status until status == 'complete'. Returns True if complete."""
+    import urllib.request
+    api_url = "https://sandsync-api.fly.dev"
+    status_url = f"{api_url}/stories/{story_id}/status"
+    deadline = time.time() + timeout_s
+    attempt = 0
+    while time.time() < deadline:
+        attempt += 1
+        try:
+            req = urllib.request.Request(status_url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                import json as _json
+                data = _json.loads(r.read())
+            status = data.get("status", "")
+            chapters_complete = data.get("chapters_complete", 0)
+            total_chapters = data.get("total_chapters", 1)
+            pct = int((chapters_complete / max(total_chapters, 1)) * 100)
+            print(f"   ⏳ [{attempt}] Story status: {status} ({pct}% — {chapters_complete}/{total_chapters} chapters)")
+            if status == "complete":
+                print(f"   ✅ Story complete after {attempt} polls!")
+                return True
+            elif status in ("failed", "error"):
+                print(f"   ❌ Story {status} — stopping poll")
+                return False
+        except Exception as e:
+            print(f"   ⚠️  Poll error (attempt {attempt}): {e}")
+        await asyncio.sleep(5)
+    print(f"   ⚠️  Story did not complete within {timeout_s}s")
+    return False
+
+
 async def scene_f(browser, meta: dict):
     print("\n🎬 Scene F — Result")
+
+    # Critical: poll API until story is complete before opening browser
+    new_story_id = meta.get("new_story_id")
+    new_story_url = meta.get("new_story_url")
+
+    if new_story_id:
+        print(f"   🔄 Waiting for story {new_story_id[:8]} to complete before recording...")
+        is_complete = await poll_story_complete(new_story_id, timeout_s=180)
+        if not is_complete:
+            print("   ⚠️  Story not complete — will show partial result")
+        else:
+            print("   ✅ Story confirmed complete — now starting recording")
+    else:
+        print("   ⚠️  No story ID in meta — cannot poll status, proceeding directly")
+
     ctx = await new_context(browser, "f")
     page = await ctx.new_page()
 
-    new_story_url = meta.get("new_story_url")
     if new_story_url:
         print(f"   🔗 Opening: {new_story_url}")
         await page.goto(new_story_url, wait_until="load", timeout=45000)

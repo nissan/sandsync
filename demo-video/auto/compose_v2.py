@@ -33,7 +33,7 @@ META_PATH = os.path.join(BASE_DIR, "scenes_meta_v2.json")
 FFMPEG = "/opt/homebrew/bin/ffmpeg"
 FFPROBE = "/opt/homebrew/bin/ffprobe"
 
-FINAL_OUTPUT = os.path.join(BASE_DIR, "demo-final-v3.mp4")
+FINAL_OUTPUT = os.path.join(BASE_DIR, "demo-final-v4.mp4")
 OUTRO_CARD = os.path.join(BASE_DIR, "outro_card.png")
 
 
@@ -559,7 +559,7 @@ def main(scenes_to_compose: list = None):
 
     dur = get_duration(FINAL_OUTPUT)
     size_mb = os.path.getsize(FINAL_OUTPUT) / 1024 / 1024
-    print(f"\n🎉 demo-final-v3.mp4 created!")
+    print(f"\n🎉 demo-final-v4.mp4 created!")
     print(f"   Duration: {dur:.1f}s ({dur/60:.1f} min)")
     print(f"   Size: {size_mb:.1f} MB")
     print(f"   Path: {FINAL_OUTPUT}")
