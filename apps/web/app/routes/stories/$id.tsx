@@ -66,7 +66,19 @@ function StoryReaderPage() {
 
   // Merge: PowerSync data wins if available (real-time), else fall back to API fetch
   const story = (storyArray && storyArray.length > 0 ? storyArray[0] : null) ?? apiStory;
-  const chapters = (psChapters && psChapters.length > 0 ? psChapters : apiChapters);
+  // Merge chapters: prefer PS for real-time content, but fill in image_url/audio_url from API
+  // if PS has a stale cached version without those columns
+  const psChapterList = psChapters && psChapters.length > 0 ? psChapters : [];
+  const chapters = psChapterList.length > 0
+    ? psChapterList.map((psCh: any) => {
+        const apiCh = apiChapters.find((a: any) => a.chapter_number === psCh.chapter_number);
+        return {
+          ...psCh,
+          image_url: psCh.image_url ?? apiCh?.image_url ?? null,
+          audio_url: psCh.audio_url ?? apiCh?.audio_url ?? null,
+        };
+      })
+    : apiChapters;
 
   // Helper to convert relative audio URLs to absolute API URLs
   const getAudioUrl = (audioUrl: string | null) => {
@@ -305,7 +317,7 @@ function StoryReaderPage() {
                 <figure className="mb-8 rounded-xl overflow-hidden border border-amber-200/20 shadow-lg shadow-amber-900/30 bg-slate-800/50">
                   <img
                     src={chapter.image_url}
-                    alt={`Illustration for ${chapter.title}`}
+                    alt={`Chapter ${chapter.chapter_number} illustration`}
                     className="w-full h-auto object-cover"
                   />
                   {chapter.illustration_prompt && (

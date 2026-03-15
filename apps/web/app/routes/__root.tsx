@@ -85,7 +85,7 @@ function RootComponent() {
           </div>
         )}
         <header className="border-b border-amber-200/10 px-6 py-4 bg-slate-900/50 backdrop-blur-md relative z-10">
-          <nav className="mx-auto max-w-4xl flex items-center justify-between">
+          <nav className="mx-auto max-w-7xl flex items-center justify-between">
             <a href="/" className="text-xl font-bold tracking-tight text-amber-100">
               🌴 SandSync
             </a>
@@ -115,7 +115,7 @@ function RootComponent() {
             </div>
           </nav>
         </header>
-        <main className="mx-auto max-w-4xl px-6 py-8 relative z-10">
+        <main className="mx-auto max-w-7xl px-6 py-8 relative z-10">
           <Outlet />
         </main>
       </div>
