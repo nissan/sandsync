@@ -23,4 +23,4 @@ export default defineConfig({
   // Explicitly disable webServer for production tests
   webServer: undefined, // Or null/false depending on Playwright version
   // Increase test timeout to accommodate longer pipeline runs
-  timeout: PIPELINE_TIMEOUT + POLL_TIMEOUT_BUFFER + 60_000, // 2min pipeline + 1min buffer + 1min nav
+  timeout: 360_000, // Global test timeout: 6 minutes (2min pipeline + buffer)
