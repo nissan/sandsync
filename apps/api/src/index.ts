@@ -53,7 +53,7 @@ function badRequest(msg: string, corsHeaders?: Record<string, string>) {
 // ── Handlers ───────────────────────────────────────────────────────────────────
 
 async function handlePostStory(req: Request, corsHeaders: Record<string, string>): Promise<Response> {
-  const { userId, request: userRequest } = body;
+  const { userId, request: userRequest, shortStory } = body;
   if (!userId) return badRequest("userId is required", corsHeaders);
   if (!userRequest) return badRequest("request is required", corsHeaders);
 
@@ -73,6 +73,7 @@ async function handlePostStory(req: Request, corsHeaders: Record<string, string>
           storyId,
           userRequest,
           dryRun: false,
+          maxChapters: shortStory ? 1 : undefined,
         },
       });
     } catch (err: any) {
@@ -254,6 +255,7 @@ async function handlePostStoryVoice(req: Request, corsHeaders: Record<string, st
 
   const userId = formData.get("userId")?.toString();
   if (!userId) return badRequest("userId is required", corsHeaders);
+  const shortStory = formData.get("shortStory") === "true";
 
   const audioFile = formData.get("audio");
   if (!audioFile || !(audioFile instanceof Blob)) {
@@ -301,6 +303,7 @@ async function handlePostStoryVoice(req: Request, corsHeaders: Record<string, st
           storyId,
           userRequest: transcriptResult.transcript,
           dryRun: false,
+          maxChapters: shortStory ? 1 : undefined,
         },
       });
     } catch (err: any) {

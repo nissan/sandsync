@@ -539,6 +539,7 @@ function PipelineDemoPage() {
   const demoMode = searchParams?.get("demo") === "1";
 
   // Simulation state for ?demo=1
+  const [shortStory, setShortStory] = useState(true);
   const [demoSimActive, setDemoSimActive] = useState(false);
   const [demoSimComplete, setDemoSimComplete] = useState(false);
 
@@ -579,7 +580,7 @@ function PipelineDemoPage() {
       const response = await fetch(`${apiUrl}/stories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: "demo-user", request }),
+        body: JSON.stringify({ userId: "demo-user", request, shortStory }),
       });
 
       if (!response.ok) {
@@ -632,6 +633,7 @@ function PipelineDemoPage() {
       const fd = new FormData();
       fd.append("userId", "demo-user");
       fd.append("audio", voice.transcriptReview.audioBlob, "recording.webm");
+      fd.append("shortStory", shortStory ? "true" : "false");
 
       const response = await fetch(`${apiUrl}/stories/voice`, { method: "POST", body: fd });
 
@@ -766,6 +768,18 @@ function PipelineDemoPage() {
                   />
                 </div>
 
+                {/* Quick demo checkbox */}
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={shortStory}
+                    onChange={(e) => setShortStory(e.target.checked)}
+                    disabled={submitting}
+                    className="w-3.5 h-3.5 rounded border-amber-400/50 bg-slate-700/40 accent-amber-400"
+                  />
+                  <span className="text-xs text-amber-200/70">⚡ Quick demo (1 chapter, ~30s narration)</span>
+                </label>
+
                 {/* Submit / Reset */}
                 {!isComplete && !isRunning ? (
                   <button
@@ -827,6 +841,18 @@ function PipelineDemoPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Quick demo checkbox */}
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={shortStory}
+                    onChange={(e) => setShortStory(e.target.checked)}
+                    disabled={voice.voiceState !== "idle"}
+                    className="w-3.5 h-3.5 rounded border-amber-400/50 bg-slate-700/40 accent-amber-400"
+                  />
+                  <span className="text-xs text-amber-200/70">⚡ Quick demo (1 chapter, ~30s narration)</span>
+                </label>
 
                 {voice.voiceError && (
                   <div className="bg-rose-500/10 border border-rose-400/40 rounded-lg px-3 py-2 text-xs text-rose-200">

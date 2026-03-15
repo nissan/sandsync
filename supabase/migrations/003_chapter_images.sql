@@ -3,10 +3,10 @@
 
 -- Add image_url column to story_chapters for Imagen-generated illustrations
 alter table story_chapters
-  add column if not exists image_url text comment 'URL to chapter illustration (Gemini Imagen generated)';
+  add column if not exists image_url text; -- URL to chapter illustration (Gemini Imagen generated)
 
 alter table story_chapters
-  add column if not exists illustration_prompt text comment 'Prompt used to generate the chapter image';
+  add column if not exists illustration_prompt text; -- Prompt used to generate the chapter image
 
 -- Index for quick image availability filtering
 create index if not exists idx_story_chapters_image

@@ -28,6 +28,7 @@ import { generateKokoroAudio, uploadKokoroAudio } from "../../services/kokoro";
 import { generateNarrationDeepgram } from "../../services/deepgram-tts";
 import { generateFluxImage, uploadFluxImage } from "../../services/flux";
 import { generateChapterVideoBackground } from "../../services/video-gen";
+import { uploadAudioToSupabase } from "../../services/supabase-storage";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -108,6 +109,7 @@ const parseBriefStep = createStep({
     storyId: z.string(),
     userRequest: z.string(),
     dryRun: z.boolean().optional().default(false),
+    maxChapters: z.number().int().min(1).max(5).optional(),
   }),
   outputSchema: z.object({
     storyId: z.string(),
@@ -115,9 +117,10 @@ const parseBriefStep = createStep({
     papaBoisLatency: z.number(),
     papaBoisTokens: z.number(),
     dryRun: z.boolean(),
+    maxChapters: z.number().optional(),
   }),
   execute: async ({ inputData }) => {
-    const { storyId, userRequest, dryRun } = inputData;
+    const { storyId, userRequest, dryRun, maxChapters } = inputData;
     const supabase = getSupabase();
 
     console.log(`\n[Papa Bois] 🌿 Parsing request for story ${storyId}`);
@@ -145,7 +148,7 @@ Return ONLY valid JSON matching this schema:
   "setting": "Trinidad/Caribbean setting details",
   "folklore_elements": ["specific folklore creatures/myths"],
   "themes": ["thematic elements"],
-  "chapter_count": 3,
+  "chapter_count": 3,  // use 1 for short demo stories (~30 seconds of narration)
   "mood": "emotional tone",
   "brief": "detailed creative direction for Anansi (2-3 sentences)"
 }`;
@@ -172,6 +175,10 @@ Return ONLY valid JSON matching this schema:
       brief: (parsed as any).brief || "Write a Caribbean folklore story.",
     };
 
+    if (maxChapters) {
+      brief.chapter_count = Math.min(brief.chapter_count, maxChapters);
+    }
+
     const tokens = (result as any).usage?.totalTokens || 200;
 
     // Update story title and write Papa Bois event
@@ -189,7 +196,7 @@ Return ONLY valid JSON matching this schema:
 
     console.log(`[Papa Bois] ✅ Brief ready: "${brief.title}" (${brief.chapter_count} chapters) — ${latency_ms}ms`);
 
-    return { storyId, brief, papaBoisLatency: latency_ms, papaBoisTokens: tokens, dryRun: dryRun ?? false };
+    return { storyId, brief, papaBoisLatency: latency_ms, papaBoisTokens: tokens, dryRun: dryRun ?? false, maxChapters };
   },
 });
 
@@ -204,6 +211,7 @@ const generateChaptersStep = createStep({
     papaBoisLatency: z.number(),
     papaBoisTokens: z.number(),
     dryRun: z.boolean(),
+    maxChapters: z.number().optional(),
   }),
   outputSchema: z.object({
     storyId: z.string(),
@@ -410,16 +418,9 @@ Return ONLY valid JSON with the same structure as before.`;
             const cost = estimateCost(textToNarrate, narration.modelId);
             totalCostUsd += cost;
 
-            // Save audio file
-            const audioDir = path.resolve(
-              process.env.AUDIO_DIR ||
-              path.join(process.cwd(), "audio"),
-              storyId
-            );
-            await mkdir(audioDir, { recursive: true });
-            const audioPath = path.join(audioDir, `chapter_${chapterNum}.mp3`);
-            await writeFile(audioPath, narration.audioBuffer);
-            audioUrl = `/audio/${storyId}/chapter_${chapterNum}.mp3`;
+            // Upload audio to Supabase Storage (persistent — survives Fly restarts)
+            const uploadedUrl = await uploadAudioToSupabase(narration.audioBuffer, storyId, chapterNum);
+            audioUrl = uploadedUrl || `/audio/${storyId}/chapter_${chapterNum}.mp3`; // fallback to local
 
             deviTrace = {
               latency_ms: deviLatency,
@@ -785,6 +786,7 @@ export const storyPipeline = createWorkflow({
     storyId: z.string(),
     userRequest: z.string(),
     dryRun: z.boolean().optional().default(false),
+    maxChapters: z.number().int().min(1).max(5).optional(),
   }),
   outputSchema: z.object({
     storyId: z.string(),
