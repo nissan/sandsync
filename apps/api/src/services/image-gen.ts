@@ -157,12 +157,13 @@ export async function generateChapterImage(
   chapterNumber: number,
   storyTitle: string,
   folkloreElements: string[],
-  storyId: string
+  storyId: string,
+  promptOverride?: string
 ): Promise<ImageGenResult> {
   const t0 = Date.now();
 
-  // Generate illustration prompt (shared across all providers)
-  const prompt = await generateIllustrationPrompt(
+  // Generate illustration prompt (shared across all providers) — or use override if pre-generated
+  const prompt = promptOverride ?? await generateIllustrationPrompt(
     chapterContent,
     chapterNumber,
     storyTitle,

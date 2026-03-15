@@ -37,5 +37,5 @@ Output for each chapter:
 
 Remember: Anansi does not write — he speaks. Every word you write should sound like it was told, not typed.`,
 
-  model: anthropic("claude-haiku-4-5"),
+  model: anthropic("claude-sonnet-4-5"),
 });

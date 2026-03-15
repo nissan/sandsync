@@ -578,6 +578,28 @@ function EventCard({ event }: { event: AgentEvent }) {
           }
           {payload.latency_ms && <span className="text-amber-200/30 ml-2">{payload.latency_ms}ms</span>}
         </p>
+        {payload.rejection_reason && (payload.rejection_reason as string[]).length > 0 && (
+          <div className="mt-1">
+            {(payload.rejection_reason as string[]).map((r: string, i: number) => (
+              <p key={i} className="text-xs text-rose-300/80">• {r}</p>
+            ))}
+          </div>
+        )}
+        {payload.cultural_notes && (
+          <p className="text-xs text-amber-200/50 mt-1 italic">{payload.cultural_notes as string}</p>
+        )}
+      </div>
+    );
+  }
+
+  // ── Imagen started ──
+  if (agent === "imagen" && event_type === "started") {
+    return (
+      <div className={cardClass}>
+        <p className="text-xs font-semibold text-amber-200/80">🎨 fal.ai FLUX — Chapter {payload.chapter} — Generating</p>
+        {payload.prompt && (
+          <p className="text-[10px] text-amber-200/40 mt-1 italic leading-relaxed">"{payload.prompt as string}"</p>
+        )}
       </div>
     );
   }
