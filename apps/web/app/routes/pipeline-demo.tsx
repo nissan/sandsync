@@ -1351,7 +1351,7 @@ function PipelineDemoPage() {
             {[
               { icon: "⚡", name: "PowerSync", desc: "Offline-first sync layer" },
               { icon: "🤖", name: "Mastra", desc: "AI agent orchestration" },
-              { icon: "🕷️", name: "Claude Haiku", desc: "Story + review agents" },
+              { icon: "🕷️", name: "Claude Sonnet", desc: "Story + review agents" },
               { icon: "🎨", name: "fal.ai FLUX", desc: "Chapter illustrations" },
               { icon: "🎤", name: "Deepgram", desc: "Speech-to-text (STT input)" },
               { icon: "🔊", name: "ElevenLabs", desc: "Voice narration (TTS output)" },
@@ -1459,7 +1459,7 @@ function PipelineDemoPage() {
                   id="story_gen"
                   icon="🕷️"
                   label="Anansi"
-                  sub="Story writer (Claude Haiku)"
+                  sub="Story writer (Claude Sonnet)"
                   steps={steps}
                 />
                 <PipelineNode
