@@ -1,5 +1,22 @@
-import { Schema, Table, Column, ColumnType } from "@powersync/web";
+import { Schema, Table, Column, ColumnType, AbstractPowerSyncDatabase } from "@powersync/web";
 import { PowerSyncDatabase } from "@powersync/web";
+
+// PowerSync backend connector — uses dev token for local/hackathon use.
+// For production: swap fetchCredentials() to return a user-scoped Supabase JWT.
+export class DevTokenConnector {
+  async fetchCredentials() {
+    const token = import.meta.env.VITE_POWERSYNC_DEV_TOKEN;
+    if (!token) throw new Error("VITE_POWERSYNC_DEV_TOKEN not set");
+    return {
+      endpoint: import.meta.env.VITE_POWERSYNC_URL as string,
+      token,
+    };
+  }
+
+  async uploadData(_database: AbstractPowerSyncDatabase) {
+    // Read-only for now — agent pipeline writes via Supabase directly
+  }
+}
 
 // Define the local schema matching the Supabase tables
 const appSchema = new Schema({

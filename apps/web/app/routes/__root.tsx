@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { PowerSyncContext, usePowerSyncStatus } from "@powersync/react";
-import { powerSyncDatabase } from "../lib/powersync";
+import { powerSyncDatabase, DevTokenConnector } from "../lib/powersync";
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -53,7 +53,7 @@ function RootComponent() {
     // Connect to PowerSync backend
     const connectDb = async () => {
       try {
-        await (powerSyncDatabase as any).connect();
+        await powerSyncDatabase.connect(new DevTokenConnector());
         setConnectionError(null);
       } catch (err: any) {
         console.error("Failed to connect PowerSync:", err);
