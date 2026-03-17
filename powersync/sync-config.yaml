@@ -1,0 +1,27 @@
+config:
+  edition: 3
+
+streams:
+  user_stories:
+    auto_subscribe: true
+    query: |
+      SELECT * FROM stories
+      WHERE user_id = auth.user_id()
+
+  user_story_chapters:
+    auto_subscribe: true
+    query: |
+      SELECT * FROM story_chapters
+      WHERE story_id IN (
+        SELECT id FROM stories
+        WHERE user_id = auth.user_id()
+      )
+
+  user_agent_events:
+    auto_subscribe: true
+    query: |
+      SELECT * FROM agent_events
+      WHERE story_id IN (
+        SELECT id FROM stories
+        WHERE user_id = auth.user_id()
+      )
