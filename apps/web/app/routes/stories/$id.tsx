@@ -131,10 +131,18 @@ function StoryReaderPage() {
   const chapters = psChapterList.length > 0
     ? psChapterList.map((psCh: any) => {
         const apiCh = apiChapters.find((a: any) => a.chapter_number === psCh.chapter_number);
+        // Prefer the longer URL — PS local SQLite may have a stale truncated value
+        // from a sync before the dev token was correctly set. API always returns full URL.
+        const resolveUrl = (psUrl: string | null, apiUrl: string | null) => {
+          if (!psUrl && !apiUrl) return null;
+          if (!psUrl) return apiUrl;
+          if (!apiUrl) return psUrl;
+          return apiUrl.length >= psUrl.length ? apiUrl : psUrl;
+        };
         return {
           ...psCh,
-          image_url: psCh.image_url || apiCh?.image_url || null,
-          audio_url: psCh.audio_url || apiCh?.audio_url || null,
+          image_url: resolveUrl(psCh.image_url, apiCh?.image_url ?? null),
+          audio_url: resolveUrl(psCh.audio_url, apiCh?.audio_url ?? null),
         };
       })
     : apiChapters;
