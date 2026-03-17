@@ -970,7 +970,7 @@ function PipelineDemoPage() {
       const response = await fetch(`${apiUrl}/stories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: "demo-user", request, shortStory }),
+        body: JSON.stringify({ userId: "openclaw", request, shortStory }),
       });
 
       if (!response.ok) {
@@ -1021,7 +1021,7 @@ function PipelineDemoPage() {
       setSteps((prev) => ({ ...prev, user_input: "complete" }));
 
       const fd = new FormData();
-      fd.append("userId", "demo-user");
+      fd.append("userId", "openclaw");
       fd.append("audio", voice.transcriptReview.audioBlob, "recording.webm");
       fd.append("shortStory", shortStory ? "true" : "false");
 
