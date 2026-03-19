@@ -155,6 +155,55 @@ async function handleHealth(corsHeaders: Record<string, string>): Promise<Respon
   }, 200, corsHeaders);
 }
 
+async function handleRetryAudio(storyId: string, chapterNum: number, corsHeaders: Record<string, string>): Promise<Response> {
+  const { data: chapter, error } = await supabase
+    .from("story_chapters")
+    .select("id, content, audio_url")
+    .eq("story_id", storyId)
+    .eq("chapter_number", chapterNum)
+    .single();
+
+  if (error || !chapter) {
+    return new Response(JSON.stringify({ error: "Chapter not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  if (chapter.audio_url) {
+    return new Response(JSON.stringify({ ok: true, audio_url: chapter.audio_url, message: "Audio already exists" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+
+  try {
+    console.log(`[RetryAudio] Regenerating audio for story ${storyId} ch${chapterNum}`);
+    const { generateNarration } = await import("./services/elevenlabs");
+
+    const voiceId = "SOYHLrjzK2X1ezoPC6cr"; // Anansi
+    const narration = await generateNarration(chapter.content, voiceId);
+
+    if (!narration?.audioBuffer) throw new Error("No audio returned from ElevenLabs");
+
+    const filePath = `${storyId}/chapter_${chapterNum}.mp3`;
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("story-audio")
+      .upload(filePath, narration.audioBuffer, { contentType: "audio/mpeg", upsert: true });
+
+    if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+
+    const audioUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/story-audio/${filePath}`;
+
+    await supabase
+      .from("story_chapters")
+      .update({ audio_url: audioUrl, audio_source: "elevenlabs" })
+      .eq("id", chapter.id);
+
+    console.log(`[RetryAudio] ✅ Audio generated for story ${storyId} ch${chapterNum}`);
+    return new Response(JSON.stringify({ ok: true, audio_url: audioUrl }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (err: any) {
+    console.error(`[RetryAudio] ❌ Failed:`, err?.message);
+    return new Response(JSON.stringify({ error: err?.message ?? "Audio generation failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+}
+
 async function handleGetAudio(storyId: string, chapterNum: number, corsHeaders: Record<string, string>): Promise<Response> {
   const audioDir = process.env.AUDIO_DIR ||
     require("path").join(process.cwd(), "audio");
@@ -451,6 +500,12 @@ const server = Bun.serve({
       const audioMatch = pathname.match(/^\/stories\/([^/]+)\/chapters\/(\d+)\/audio$/);
       if (audioMatch && method === "GET") {
         return await handleGetAudio(audioMatch[1], parseInt(audioMatch[2]), corsHeaders);
+      }
+
+      // POST /stories/:id/chapters/:n/retry-audio
+      const retryAudioMatch = pathname.match(/^\/stories\/([^/]+)\/chapters\/(\d+)\/retry-audio$/);
+      if (retryAudioMatch && method === "POST") {
+        return await handleRetryAudio(retryAudioMatch[1], parseInt(retryAudioMatch[2]), corsHeaders);
       }
 
       // GET /images/* — serve generated chapter illustrations from disk

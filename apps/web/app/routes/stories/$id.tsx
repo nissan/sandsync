@@ -86,6 +86,7 @@ function StoryReaderPage() {
   const [apiStory, setApiStory] = useState<any>(null);
   const [apiChapters, setApiChapters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const apiUrl = (import.meta.env as any).VITE_API_URL || "http://localhost:3002";
 
   // Fetch story from API on mount
   useEffect(() => {
@@ -428,10 +429,16 @@ function StoryReaderPage() {
                     <span className="font-medium">Narration by Devi — processing audio...</span>
                   </div>
                 ) : (
-                  <div className="bg-slate-800/60 backdrop-blur rounded-xl border border-slate-600/30 px-5 py-4 text-sm text-amber-200/40 flex items-center gap-3">
-                    <span className="text-lg">🔇</span>
-                    <span className="font-medium">Audio unavailable — ElevenLabs quota exceeded</span>
-                  </div>
+                  <RetryAudioButton
+                    storyId={id}
+                    chapterNumber={chapter.chapter_number}
+                    apiUrl={apiUrl}
+                    onSuccess={(url) => {
+                      setApiChapters(prev => prev.map((c: any) =>
+                        c.chapter_number === chapter.chapter_number ? { ...c, audio_url: url } : c
+                      ));
+                    }}
+                  />
                 )}
               </div>
 
@@ -465,6 +472,62 @@ function StoryReaderPage() {
           </Link>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function RetryAudioButton({
+  storyId,
+  chapterNumber,
+  apiUrl,
+  onSuccess,
+}: {
+  storyId: string;
+  chapterNumber: number;
+  apiUrl: string;
+  onSuccess: (url: string) => void;
+}) {
+  const [state, setState] = useState<"idle" | "loading" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const retry = async () => {
+    setState("loading");
+    setErrorMsg("");
+    try {
+      const res = await fetch(`${apiUrl}/stories/${storyId}/chapters/${chapterNumber}/retry-audio`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.audio_url) throw new Error(data.error ?? "No audio returned");
+      onSuccess(data.audio_url);
+      setState("idle");
+    } catch (err: any) {
+      setErrorMsg(err.message ?? "Failed");
+      setState("error");
+    }
+  };
+
+  if (state === "loading") {
+    return (
+      <div className="bg-slate-800/60 backdrop-blur rounded-xl border border-amber-400/20 px-5 py-4 text-sm text-amber-300/80 flex items-center gap-3">
+        <span className="text-lg animate-pulse">🎙️</span>
+        <span className="font-medium">Devi is generating narration...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-slate-800/60 backdrop-blur rounded-xl border border-slate-600/30 px-5 py-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3 text-sm text-amber-200/40">
+        <span className="text-lg">🔇</span>
+        <span className="font-medium">
+          {state === "error" ? `Audio failed: ${errorMsg}` : "Audio unavailable"}
+        </span>
+      </div>
+      <button
+        onClick={retry}
+        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-amber-200 border border-amber-500/30 transition-colors whitespace-nowrap"
+      >
+        🔄 Retry audio
+      </button>
     </div>
   );
 }
