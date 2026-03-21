@@ -1,6 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 
+const PRESENTATION_VIDEO_URL =
+  "https://houtondlrbwaosdwqyiu.supabase.co/storage/v1/object/public/story-videos/presentation/sandsync-presentation-v2.mp4";
+
 export const Route = createFileRoute("/slides")({
   component: SlidesComponent,
 });
@@ -647,6 +650,7 @@ function SlidesComponent() {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [animating, setAnimating] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
   const total = SLIDES.length;
 
   const goTo = useCallback(
@@ -695,6 +699,33 @@ function SlidesComponent() {
       onClick={handleClick}
       style={{ userSelect: "none" }}
     >
+      {/* Presentation video overlay */}
+      {showVideo && (
+        <div
+          className="absolute inset-0 z-40 bg-black/90 flex flex-col items-center justify-center p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="w-full max-w-4xl">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-amber-300 font-mono text-sm tracking-wide">📽 Presentation Video</span>
+              <button
+                onClick={() => setShowVideo(false)}
+                className="text-amber-400/60 hover:text-amber-300 text-sm font-mono px-3 py-1 border border-amber-500/20 rounded hover:border-amber-500/50 transition-colors"
+              >
+                ✕ Close
+              </button>
+            </div>
+            <video
+              src={PRESENTATION_VIDEO_URL}
+              controls
+              autoPlay
+              className="w-full rounded-lg border border-amber-500/20 shadow-2xl"
+              style={{ maxHeight: "75vh" }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 pointer-events-none" />
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -731,11 +762,17 @@ function SlidesComponent() {
       </div>
 
       {/* Footer */}
-      <div className="relative z-20 flex items-center justify-between px-8 py-4 pointer-events-none">
-        <div className="text-amber-500/40 text-xs font-mono">
+      <div className="relative z-20 flex items-center justify-between px-8 py-4">
+        <div className="text-amber-500/40 text-xs font-mono pointer-events-none">
           Press <kbd className="bg-slate-700 px-1.5 py-0.5 rounded text-amber-300/60">ESC</kbd> to exit
         </div>
-        <div className="text-amber-400/60 font-mono text-sm">
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowVideo(true); }}
+          className="text-amber-400/50 hover:text-amber-300 text-xs font-mono px-3 py-1 border border-amber-500/20 rounded hover:border-amber-500/40 transition-colors"
+        >
+          📽 Watch Presentation
+        </button>
+        <div className="text-amber-400/60 font-mono text-sm pointer-events-none">
           {current + 1} / {total}
         </div>
       </div>
