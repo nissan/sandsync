@@ -1,0 +1,185 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - navigation [ref=e5]:
+        - link "🌴 SandSync" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e7]:
+          - generic [ref=e8]: Caribbean Folklore AI · PowerSync AI Hackathon 2026
+          - generic "PowerSync connected — syncing to all devices" [ref=e9]: ⚡ PowerSync synced
+          - link "🏗️ demo" [ref=e11] [cursor=pointer]:
+            - /url: /demo
+          - link "🌴 Showcase" [ref=e12] [cursor=pointer]:
+            - /url: /showcase
+          - link "🔗 Pipeline" [ref=e13] [cursor=pointer]:
+            - /url: /pipeline-demo
+    - main [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - heading "🌴 SandSync" [level=1] [ref=e17]
+          - paragraph [ref=e18]: Caribbean folklore. AI-written. Narrated. Illustrated. Yours offline.
+          - paragraph [ref=e19]: Powered by PowerSync · Mastra · ElevenLabs · fal.ai · Supabase · Groq · TanStack
+          - generic [ref=e20]:
+            - link "▶ Try the Demo" [ref=e21] [cursor=pointer]:
+              - /url: /pipeline-demo
+              - generic [ref=e22]: ▶
+              - generic [ref=e23]: Try the Demo
+            - link "📚 Browse Stories" [ref=e24] [cursor=pointer]:
+              - /url: /showcase
+              - generic [ref=e25]: 📚
+              - generic [ref=e26]: Browse Stories
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: What type of tale calls to you?
+            - generic [ref=e32]:
+              - button "🕷️ Anansi trickster tale" [ref=e33]
+              - button "🌳 Papa Bois forest spirit" [ref=e34]
+              - button "🔥 Soucouyant mystery" [ref=e35]
+              - button "👠 La Diablesse encounter" [ref=e36]
+              - button "🐺 Lagahoo shapeshifter" [ref=e37]
+              - button "🐍 Mama Dlo river spirit" [ref=e38]
+              - button "👣 Douen children spirits" [ref=e39]
+              - button "🌲 Silk cotton tree legend" [ref=e40]
+            - paragraph [ref=e41]: Each folklore spirit has its own flavor of tale.
+          - generic [ref=e42]:
+            - generic [ref=e43]: What should this tale explore?
+            - textbox "A clever merchant outwitting a spirit... A love tested by trickery... A hunter's test..." [ref=e44]
+            - generic [ref=e45]:
+              - paragraph [ref=e46]: Be specific. Spirits respond to intention.
+              - generic [ref=e47]: 0/200
+          - button "Summon the Story" [ref=e48]
+        - generic [ref=e49]:
+          - heading "Recent Tales" [level=2] [ref=e50]
+          - generic [ref=e51]:
+            - 'link "The Douen''s Lesson: Lost in the Schoolyard Caribbean folklore - spirit encounter ✓ Complete 📖 Chapters ⏱️ 11 min" [ref=e52] [cursor=pointer]':
+              - /url: /stories/00aa7659-aae7-466e-aeaa-94d67167c240
+              - generic [ref=e53]:
+                - generic [ref=e54]:
+                  - 'heading "The Douen''s Lesson: Lost in the Schoolyard" [level=3] [ref=e55]'
+                  - paragraph [ref=e56]: Caribbean folklore - spirit encounter
+                - generic [ref=e57]: ✓ Complete
+              - generic [ref=e58]:
+                - generic [ref=e59]: 📖 Chapters
+                - generic [ref=e60]: ⏱️ 11 min
+            - link "Papa Bois and the Lost Boy's Path Caribbean folklore - protective spirit tale ✓ Complete 📖 Chapters ⏱️ 17 min" [ref=e61] [cursor=pointer]:
+              - /url: /stories/2d807b44-e360-4e24-9b9b-88994701ec1e
+              - generic [ref=e62]:
+                - generic [ref=e63]:
+                  - heading "Papa Bois and the Lost Boy's Path" [level=3] [ref=e64]
+                  - paragraph [ref=e65]: Caribbean folklore - protective spirit tale
+                - generic [ref=e66]: ✓ Complete
+              - generic [ref=e67]:
+                - generic [ref=e68]: 📖 Chapters
+                - generic [ref=e69]: ⏱️ 17 min
+            - link "The Child of the Silk Cotton Tree Caribbean folklore initiation tale ✓ Complete 📖 Chapters ⏱️ 20 min" [ref=e70] [cursor=pointer]:
+              - /url: /stories/11499f55-10ee-4a37-9595-073eff030607
+              - generic [ref=e71]:
+                - generic [ref=e72]:
+                  - heading "The Child of the Silk Cotton Tree" [level=3] [ref=e73]
+                  - paragraph [ref=e74]: Caribbean folklore initiation tale
+                - generic [ref=e75]: ✓ Complete
+              - generic [ref=e76]:
+                - generic [ref=e77]: 📖 Chapters
+                - generic [ref=e78]: ⏱️ 20 min
+            - link "Anansi and the Stolen Thunder Trickster Tale with Weather Magic ✓ Complete 📖 Chapters ⏱️ 13 min" [ref=e79] [cursor=pointer]:
+              - /url: /stories/86f3da92-80d1-4498-80cd-8a2b76601e0e
+              - generic [ref=e80]:
+                - generic [ref=e81]:
+                  - heading "Anansi and the Stolen Thunder" [level=3] [ref=e82]
+                  - paragraph [ref=e83]: Trickster Tale with Weather Magic
+                - generic [ref=e84]: ✓ Complete
+              - generic [ref=e85]:
+                - generic [ref=e86]: 📖 Chapters
+                - generic [ref=e87]: ⏱️ 13 min
+            - link "The Boy Who Found the Silk Cotton's Secret Caribbean folklore - spirit encounter and coming-of-age ✓ Complete 📖 Chapters ⏱️ 17 min" [ref=e88] [cursor=pointer]:
+              - /url: /stories/86624e73-c30a-4559-9b6e-6789e9ef1d26
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - heading "The Boy Who Found the Silk Cotton's Secret" [level=3] [ref=e91]
+                  - paragraph [ref=e92]: Caribbean folklore - spirit encounter and coming-of-age
+                - generic [ref=e93]: ✓ Complete
+              - generic [ref=e94]:
+                - generic [ref=e95]: 📖 Chapters
+                - generic [ref=e96]: ⏱️ 17 min
+            - 'link "The Fisherman''s Bargain: What Mama Dlo Takes Anansi Trickster Tale with River Spirit Folklore ✓ Complete 📖 Chapters ⏱️ 12 min" [ref=e97] [cursor=pointer]':
+              - /url: /stories/45efd1b9-87b7-4cc8-ae8a-931abeeb9c8b
+              - generic [ref=e98]:
+                - generic [ref=e99]:
+                  - 'heading "The Fisherman''s Bargain: What Mama Dlo Takes" [level=3] [ref=e100]'
+                  - paragraph [ref=e101]: Anansi Trickster Tale with River Spirit Folklore
+                - generic [ref=e102]: ✓ Complete
+              - generic [ref=e103]:
+                - generic [ref=e104]: 📖 Chapters
+                - generic [ref=e105]: ⏱️ 12 min
+            - link "The Last Fare La Diablesse encounter / supernatural warning tale ✓ Complete 📖 Chapters ⏱️ 13 min" [ref=e106] [cursor=pointer]:
+              - /url: /stories/c8e42300-958a-4f17-bc7c-0de42906594f
+              - generic [ref=e107]:
+                - generic [ref=e108]:
+                  - heading "The Last Fare" [level=3] [ref=e109]
+                  - paragraph [ref=e110]: La Diablesse encounter / supernatural warning tale
+                - generic [ref=e111]: ✓ Complete
+              - generic [ref=e112]:
+                - generic [ref=e113]: 📖 Chapters
+                - generic [ref=e114]: ⏱️ 13 min
+            - link "Anansi and the Lion's Stolen Thunder Anansi Trickster Tale with West African-Caribbean fusion ✓ Complete 📖 Chapters ⏱️ 7 min" [ref=e115] [cursor=pointer]:
+              - /url: /stories/8a1b6e07-c2fd-49a6-b3ca-1d4dd1b84533
+              - generic [ref=e116]:
+                - generic [ref=e117]:
+                  - heading "Anansi and the Lion's Stolen Thunder" [level=3] [ref=e118]
+                  - paragraph [ref=e119]: Anansi Trickster Tale with West African-Caribbean fusion
+                - generic [ref=e120]: ✓ Complete
+              - generic [ref=e121]:
+                - generic [ref=e122]: 📖 Chapters
+                - generic [ref=e123]: ⏱️ 7 min
+            - link "The Parrot's Message Caribbean Spirit Tale with Animal Wisdom ✓ Complete 📖 Chapters ⏱️ 18 min" [ref=e124] [cursor=pointer]:
+              - /url: /stories/888b6736-ce03-4d4c-941f-7ea3ee3e48f2
+              - generic [ref=e125]:
+                - generic [ref=e126]:
+                  - heading "The Parrot's Message" [level=3] [ref=e127]
+                  - paragraph [ref=e128]: Caribbean Spirit Tale with Animal Wisdom
+                - generic [ref=e129]: ✓ Complete
+              - generic [ref=e130]:
+                - generic [ref=e131]: 📖 Chapters
+                - generic [ref=e132]: ⏱️ 18 min
+            - link "The Girl Between the Silk Cotton Trees Caribbean folklore mystery with supernatural revelation ✓ Complete 📖 Chapters ⏱️ 9 min" [ref=e133] [cursor=pointer]:
+              - /url: /stories/f0edceb5-d90d-4ff1-99b0-f92e68191271
+              - generic [ref=e134]:
+                - generic [ref=e135]:
+                  - heading "The Girl Between the Silk Cotton Trees" [level=3] [ref=e136]
+                  - paragraph [ref=e137]: Caribbean folklore mystery with supernatural revelation
+                - generic [ref=e138]: ✓ Complete
+              - generic [ref=e139]:
+                - generic [ref=e140]: 📖 Chapters
+                - generic [ref=e141]: ⏱️ 9 min
+            - link "The Waterfall's Blessing Papa Bois Guardian Spirit Tale ✓ Complete 📖 Chapters ⏱️ 13 min" [ref=e142] [cursor=pointer]:
+              - /url: /stories/97105ad2-ef67-401a-a125-499bfc4815f7
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - heading "The Waterfall's Blessing" [level=3] [ref=e145]
+                  - paragraph [ref=e146]: Papa Bois Guardian Spirit Tale
+                - generic [ref=e147]: ✓ Complete
+              - generic [ref=e148]:
+                - generic [ref=e149]: 📖 Chapters
+                - generic [ref=e150]: ⏱️ 13 min
+            - link "The Mahogany Boundary Caribbean forest spirit folklore - Papa Bois guardian tale ✓ Complete 📖 Chapters ⏱️ 15 min" [ref=e151] [cursor=pointer]:
+              - /url: /stories/c2165ace-3d9c-4e13-8423-10fbec8f86a9
+              - generic [ref=e152]:
+                - generic [ref=e153]:
+                  - heading "The Mahogany Boundary" [level=3] [ref=e154]
+                  - paragraph [ref=e155]: Caribbean forest spirit folklore - Papa Bois guardian tale
+                - generic [ref=e156]: ✓ Complete
+              - generic [ref=e157]:
+                - generic [ref=e158]: 📖 Chapters
+                - generic [ref=e159]: ⏱️ 15 min
+  - generic:
+    - contentinfo:
+      - button "Open TanStack Router Devtools" [ref=e160] [cursor=pointer]:
+        - generic [ref=e161]:
+          - img [ref=e163]
+          - img [ref=e198]
+        - generic [ref=e232]: "-"
+        - generic [ref=e233]: TanStack Router
+```
