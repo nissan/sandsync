@@ -2,12 +2,12 @@ import React, { useEffect } from "react";
 import { Stack } from "expo-router";
 import { PowerSyncContext } from "@powersync/react-native";
 import { db } from "../lib/powersync";
-import { SupabaseConnector } from "../lib/supabase";
+// Demo mode: start disconnected — user taps Go Online to trigger first sync
 
 export default function RootLayout() {
   useEffect(() => {
-    const connector = new SupabaseConnector();
-    db.connect(connector);
+    // Don't auto-connect — demo mode starts offline.
+    // Connection is triggered by the toggle button in the header.
     return () => {
       db.disconnect();
     };

@@ -98,8 +98,6 @@ function ChapterCard({ chapter }: { chapter: StoryChapter }) {
         />
       )}
 
-      <Text style={styles.chapterText}>{text}</Text>
-
       {chapter.audio_url ? (
         <AudioPlayer
           audioUrl={chapter.audio_url}
@@ -110,6 +108,8 @@ function ChapterCard({ chapter }: { chapter: StoryChapter }) {
           <Text style={styles.noAudioText}>🎵 Audio not available yet</Text>
         </View>
       )}
+
+      <Text style={styles.chapterText}>{text}</Text>
     </View>
   );
 }
