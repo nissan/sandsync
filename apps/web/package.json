@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "test:regression": "playwright test e2e/regression.spec.ts",
+    "test:smoke": "playwright test e2e/story-flow.spec.ts e2e/powersync.spec.ts",
+    "test:pre-commit": "playwright test e2e/regression.spec.ts e2e/story-flow.spec.ts e2e/powersync.spec.ts"
   },
   "dependencies": {
     "@powersync/react": "^1.9.0",

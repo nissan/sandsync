@@ -286,7 +286,7 @@ function StoryReaderPage() {
         </p>
         <div className="flex items-center justify-between gap-2 md:gap-4">
           {Object.entries(agentStatuses).map(([agent, status], idx) => {
-            const colors = AGENT_COLORS[agent];
+            const colors = AGENT_COLORS[agent] ?? { bg: "from-slate-900/20 to-slate-900/10", border: "border-slate-600/50", textBg: "bg-slate-400/20 text-slate-100 border-slate-400/50" };
             return (
               <div key={agent} className="flex items-center gap-2 md:gap-4 flex-1">
                 <div
