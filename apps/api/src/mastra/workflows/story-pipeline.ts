@@ -432,6 +432,7 @@ Return ONLY valid JSON with the same structure as before.`;
         .insert({
           story_id: storyId,
           chapter_number: chapterNum,
+          title: anansiParsed?.title || null,
           content: currentContent,
           reviewed_content: finalOgmaReview?.reviewed_content || currentContent,
           quality_score: finalOgmaScore,

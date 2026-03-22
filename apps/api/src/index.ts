@@ -167,7 +167,7 @@ async function handlePostStory(req: Request, corsHeaders: Record<string, string>
 
   const { data: story, error } = await supabase
     .from("stories")
-    .insert({ user_id: userId, status: "queued" })
+    .insert({ user_id: userId, status: "queued", theme: userRequest })
     .select()
     .single();
 
@@ -375,7 +375,7 @@ async function handlePostStoryTranscribe(req: Request, corsHeaders: Record<strin
 async function handleGetStory(storyId: string, corsHeaders: Record<string, string>): Promise<Response> {
   const { data: story, error } = await supabase
     .from("stories")
-    .select("id, title, genre, status, created_at")
+    .select("id, user_id, title, genre, theme, status, created_at, updated_at")
     .eq("id", storyId)
     .single();
 
@@ -383,7 +383,7 @@ async function handleGetStory(storyId: string, corsHeaders: Record<string, strin
 
   const { data: chapters } = await supabase
     .from("story_chapters")
-    .select("id, chapter_number, content, reviewed_content, image_url, audio_url, quality_score, created_at")
+    .select("id, chapter_number, title, content, reviewed_content, image_url, audio_url, quality_score, illustration_prompt, created_at")
     .eq("story_id", storyId)
     .order("chapter_number");
 
@@ -493,7 +493,7 @@ async function handlePostStoryVoice(req: Request, corsHeaders: Record<string, st
   // Create story row
   const { data: story, error } = await supabase
     .from("stories")
-    .insert({ user_id: userId, status: "queued" })
+    .insert({ user_id: userId, status: "queued", theme: userRequest })
     .select()
     .single();
 
