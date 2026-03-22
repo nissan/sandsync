@@ -51,8 +51,11 @@ export default function LibraryScreen() {
   const { data: stories } = useQuery<Story & { cover_image: string | null }>(
     `SELECT s.*, sc.image_url as cover_image
      FROM stories s
-     LEFT JOIN story_chapters sc ON sc.story_id = s.id AND sc.chapter_number = 1
-     WHERE s.status != 'failed'
+     INNER JOIN story_chapters sc ON sc.story_id = s.id AND sc.chapter_number = 1
+     WHERE s.status = 'complete'
+       AND sc.content IS NOT NULL
+       AND sc.audio_url IS NOT NULL
+       AND sc.image_url IS NOT NULL
      ORDER BY s.created_at DESC`
   );
 

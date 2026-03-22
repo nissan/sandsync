@@ -21,7 +21,16 @@ const GENRES = [
 
 function HomePage() {
   const navigate = useNavigate();
-  const { data: stories } = useQuery<Story>("SELECT * FROM stories WHERE status != 'failed' ORDER BY created_at DESC");
+  const { data: stories } = useQuery<Story>(
+    `SELECT s.*
+     FROM stories s
+     INNER JOIN story_chapters sc ON sc.story_id = s.id AND sc.chapter_number = 1
+     WHERE s.status = 'complete'
+       AND sc.content IS NOT NULL
+       AND sc.audio_url IS NOT NULL
+       AND sc.image_url IS NOT NULL
+     ORDER BY s.created_at DESC`
+  );
   const [selectedGenre, setSelectedGenre] = useState(GENRES[0].value);
   const [theme, setTheme] = useState("");
   const [submitting, setSubmitting] = useState(false);

@@ -23,7 +23,12 @@ export default function StoryScreen() {
   );
 
   const { data: chapters } = useQuery<StoryChapter>(
-    "SELECT * FROM story_chapters WHERE story_id = ? ORDER BY chapter_number ASC",
+    `SELECT * FROM story_chapters
+     WHERE story_id = ?
+       AND content IS NOT NULL
+       AND audio_url IS NOT NULL
+       AND image_url IS NOT NULL
+     ORDER BY chapter_number ASC`,
     [id]
   );
 
