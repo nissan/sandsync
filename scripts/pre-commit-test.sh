@@ -13,4 +13,11 @@ npx playwright test e2e/regression.spec.ts e2e/story-flow.spec.ts e2e/powersync.
   --reporter=list \
   "$@"
 
+echo ""
+echo "🧪 Running SandSync API tests..."
+cd "$(dirname "$0")/../apps/api"
+bun test src/__tests__/api.test.ts
+echo "✅ API tests passed."
+
+echo ""
 echo "✅ All tests passed — safe to commit."
