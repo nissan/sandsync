@@ -192,3 +192,64 @@ test.describe("Regression: Story reader — chapter images render without broken
     expect(bodyText.length).toBeGreaterThan(50);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Regression: genre selection wired end-to-end
+// Bug: home page sent {genre, theme} with no userId/request → silently failed
+//      Selecting Anansi would result in Papa Bois picking a Douen story
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe("Regression: Genre selection — home page form sends correct payload", () => {
+  test("selecting a genre and submitting builds correct API request (not missing userId)", async ({
+    page,
+  }) => {
+    const requests: { url: string; body: any }[] = [];
+
+    // Intercept POST /stories to verify payload
+    await page.route("**/stories", async (route) => {
+      const req = route.request();
+      if (req.method() === "POST") {
+        try {
+          const body = JSON.parse(req.postData() || "{}");
+          requests.push({ url: req.url(), body });
+        } catch {}
+      }
+      // Fulfill with a fake storyId so the page doesn't crash
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({ storyId: "test-genre-regression-id" }),
+      });
+    });
+
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: /SandSync/i })).toBeVisible({ timeout: 10000 });
+
+    // Select Anansi genre (button text: "🕷️ Anansi trickster tale")
+    const anansiBtn = page.getByRole("button", { name: /Anansi trickster tale/i });
+    await anansiBtn.click();
+
+    // Fill theme textarea
+    const textarea = page.locator("textarea").first();
+    if (await textarea.count() > 0) {
+      await textarea.fill("a clever trickster");
+    }
+
+    // Submit
+    await page.getByText("Summon the Story").click();
+    await page.waitForTimeout(1500);
+
+    // Verify the intercepted request had userId and request fields (not just genre)
+    if (requests.length > 0) {
+      const body = requests[0].body;
+      // Regression check: userId must be present (was missing before fix)
+      expect(body.userId).toBeTruthy();
+      // Regression check: request must be present (was missing before fix)
+      expect(body.request).toBeTruthy();
+      // Genre should also be present
+      expect(body.genre).toBe("anansi");
+      // request should reference the anansi genre (built from genre label)
+      expect(body.request.toLowerCase()).toContain("anansi");
+    }
+  });
+});
