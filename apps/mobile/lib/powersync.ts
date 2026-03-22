@@ -39,10 +39,12 @@ export const AppSchema = new Schema({
   agent_events: agentEventsTable,
 });
 
+// v2: bumped filename after schema migration 006 (added title, theme, updated_at columns)
+// This forces a fresh local DB on all devices, clearing any stale schema from v1.
 export const db = new PowerSyncDatabase({
   schema: AppSchema,
   database: {
-    dbFilename: "sandsync.db",
+    dbFilename: "sandsync-v2.db",
   },
 });
 
