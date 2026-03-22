@@ -242,6 +242,7 @@ const generateChaptersStep = createStep({
 
       let revisionCount = 0;
       const revisionHistory: any[] = [];
+      let chapterTitle: string | null = null;
       let currentContent = "";
       let currentWordCount = 0;
       let finalOgmaScore = 0;
@@ -292,6 +293,7 @@ Write Chapter ${chapterNum} now. Return ONLY valid JSON:
         const anansiParsed = extractJson(anansiResult.text) as any;
         currentContent = anansiParsed?.content || anansiResult.text;
         currentWordCount = anansiParsed?.word_count || currentContent.split(/\s+/).length;
+        chapterTitle = anansiParsed?.title || null;
 
         console.log(`  [Anansi] ✅ Draft ${revisionCount + 1} written (${currentWordCount} words, ${anansiLatency}ms)`);
 
@@ -432,7 +434,7 @@ Return ONLY valid JSON with the same structure as before.`;
         .insert({
           story_id: storyId,
           chapter_number: chapterNum,
-          title: anansiParsed?.title || null,
+          title: chapterTitle,
           content: currentContent,
           reviewed_content: finalOgmaReview?.reviewed_content || currentContent,
           quality_score: finalOgmaScore,
