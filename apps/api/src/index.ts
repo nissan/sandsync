@@ -493,7 +493,7 @@ async function handlePostStoryVoice(req: Request, corsHeaders: Record<string, st
   // Create story row
   const { data: story, error } = await supabase
     .from("stories")
-    .insert({ user_id: userId, status: "queued", theme: userRequest })
+    .insert({ user_id: userId, status: "queued", theme: transcriptResult.transcript })
     .select()
     .single();
 
