@@ -21,7 +21,7 @@ const GENRES = [
 
 function HomePage() {
   const navigate = useNavigate();
-  const { data: stories } = useQuery<Story>("SELECT * FROM stories ORDER BY created_at DESC");
+  const { data: stories } = useQuery<Story>("SELECT * FROM stories WHERE status != 'failed' ORDER BY created_at DESC");
   const [selectedGenre, setSelectedGenre] = useState(GENRES[0].value);
   const [theme, setTheme] = useState("");
   const [submitting, setSubmitting] = useState(false);

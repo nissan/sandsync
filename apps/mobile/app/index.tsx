@@ -52,6 +52,7 @@ export default function LibraryScreen() {
     `SELECT s.*, sc.image_url as cover_image
      FROM stories s
      LEFT JOIN story_chapters sc ON sc.story_id = s.id AND sc.chapter_number = 1
+     WHERE s.status != 'failed'
      ORDER BY s.created_at DESC`
   );
 
