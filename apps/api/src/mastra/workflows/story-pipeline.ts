@@ -108,6 +108,7 @@ const parseBriefStep = createStep({
   inputSchema: z.object({
     storyId: z.string(),
     userRequest: z.string(),
+    selectedGenre: z.string().nullable().optional(),
     dryRun: z.boolean().optional().default(false),
     maxChapters: z.number().int().min(1).max(5).optional(),
   }),
@@ -120,7 +121,7 @@ const parseBriefStep = createStep({
     maxChapters: z.number().optional(),
   }),
   execute: async ({ inputData }) => {
-    const { storyId, userRequest, dryRun, maxChapters } = inputData;
+    const { storyId, userRequest, selectedGenre, dryRun, maxChapters } = inputData;
     const supabase = getSupabase();
 
     console.log(`\n[Papa Bois] 🌿 Parsing request for story ${storyId}`);
@@ -136,9 +137,13 @@ const parseBriefStep = createStep({
       request: userRequest,
     });
 
+    const genreInstruction = selectedGenre
+      ? `\nIMPORTANT: The user has specifically selected "${selectedGenre}" as the folklore character/spirit. You MUST feature this character as the central figure of the story. Do not substitute a different Caribbean character.\n`
+      : "";
+
     const prompt = `Parse this story request and return a structured JSON brief for Anansi.
 
-User request: "${userRequest}"
+User request: "${userRequest}"${genreInstruction}
 
 Return ONLY valid JSON matching this schema:
 {

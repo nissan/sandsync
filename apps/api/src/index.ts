@@ -161,7 +161,7 @@ async function handleGetPowerSyncToken(corsHeaders: Record<string, string>): Pro
 async function handlePostStory(req: Request, corsHeaders: Record<string, string>): Promise<Response> {
   let body: any;
   try { body = await req.json(); } catch { return badRequest("Invalid JSON body", corsHeaders); }
-  const { userId, request: userRequest, shortStory } = body;
+  const { userId, request: userRequest, shortStory, genre: selectedGenre } = body;
   if (!userId) return badRequest("userId is required", corsHeaders);
   if (!userRequest) return badRequest("request is required", corsHeaders);
 
@@ -186,6 +186,7 @@ async function handlePostStory(req: Request, corsHeaders: Record<string, string>
         inputData: {
           storyId,
           userRequest,
+          selectedGenre: selectedGenre || null,
           dryRun: false,
           maxChapters: shortStory ? 1 : undefined,
         },

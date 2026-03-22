@@ -49,9 +49,12 @@ function HomePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            userId: "openclaw",
+            request: theme
+              ? `A ${selectedGenreObj.label} story about: ${theme}`
+              : `Tell me a ${selectedGenreObj.label} story`,
             genre: selectedGenre,
-            theme: theme || undefined,
-            length: "short",
+            shortStory: true,
           }),
         }
       );
