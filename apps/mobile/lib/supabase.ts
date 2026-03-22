@@ -18,10 +18,26 @@ export class SupabaseConnector {
   client = supabase;
 
   async fetchCredentials() {
-    return {
-      endpoint: POWERSYNC_URL,
-      token: POWERSYNC_DEV_TOKEN,
-    };
+    const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://sandsync-api.fly.dev";
+    
+    try {
+      const res = await fetch(`${API_URL}/powersync/token`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch PowerSync token: ${res.status}`);
+      }
+      const data = await res.json();
+      return {
+        endpoint: data.endpoint,
+        token: data.token,
+      };
+    } catch (err: any) {
+      console.error("[SupabaseConnector] Token fetch failed, falling back to dev token:", err.message);
+      // Fallback to dev token if API is unavailable
+      return {
+        endpoint: POWERSYNC_URL,
+        token: POWERSYNC_DEV_TOKEN,
+      };
+    }
   }
 
   async uploadData(_database: unknown) {

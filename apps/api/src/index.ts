@@ -28,7 +28,19 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const OLLAMA_URL =
   process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434";
 
+const PS_ADMIN_TOKEN = process.env.PS_ADMIN_TOKEN;
+const POWERSYNC_PROJECT_ID = process.env.POWERSYNC_PROJECT_ID || "69ae074a80997e00088a7f70";
+const POWERSYNC_INSTANCE_ID = process.env.POWERSYNC_INSTANCE_ID || "69ae074bd42a43395100b01b";
+const POWERSYNC_ENDPOINT = `https://${POWERSYNC_INSTANCE_ID}.powersync.journeyapps.com`;
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// In-memory token cache: { token, expiresAt }
+interface TokenCache {
+  token: string;
+  expiresAt: number;
+}
+let tokenCache: TokenCache | null = null;
 
 // ── Response helpers ───────────────────────────────────────────────────────────
 
@@ -48,6 +60,100 @@ function notFound(corsHeaders?: Record<string, string>) {
 
 function badRequest(msg: string, corsHeaders?: Record<string, string>) {
   return json({ error: msg }, 400, corsHeaders);
+}
+
+// ── Token generation ──────────────────────────────────────────────────────────
+
+async function generatePowerSyncToken(): Promise<string> {
+  // Check cache first — only regenerate if within 5 minutes of expiry
+  const now = Date.now();
+  if (tokenCache && tokenCache.expiresAt - now > 5 * 60 * 1000) {
+    return tokenCache.token;
+  }
+
+  // Use Supabase anon key to create a JWT
+  // PowerSync accepts any JWT signed by a trusted key
+  // For now, we use the dev token as fallback since anon key JWT generation isn't exposed
+  // The cleanest approach: Supabase auth returns a JWT, we forward it
+  
+  // For hackathon: regenerate dev token via direct Supabase token signing
+  // Since we can't call PowerSync CLI in Alpine, use pre-generated dev token from env
+  const devToken = process.env.POWERSYNC_DEV_TOKEN;
+  
+  if (!devToken) {
+    // If no dev token in env, try to use admin token to call PowerSync REST API
+    // PowerSync API docs: POST /api/v1/auth/tokens
+    if (!PS_ADMIN_TOKEN) {
+      throw new Error("No token available: set POWERSYNC_DEV_TOKEN or PS_ADMIN_TOKEN");
+    }
+    
+    const tokenRes = await fetch(
+      `${POWERSYNC_ENDPOINT}/api/v1/auth/tokens`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${PS_ADMIN_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject: "openclaw",
+          expires_in_seconds: 86400,
+        }),
+      }
+    );
+
+    if (!tokenRes.ok) {
+      throw new Error(`PowerSync API error: ${tokenRes.status}`);
+    }
+
+    const data = await tokenRes.json() as any;
+    const token = data.token || data.access_token;
+
+    if (!token) {
+      throw new Error("No token in response");
+    }
+
+    // Cache for 24 hours (86400s)
+    tokenCache = {
+      token,
+      expiresAt: now + 86400 * 1000,
+    };
+
+    return token;
+  }
+
+  // Use pre-generated dev token from env
+  tokenCache = {
+    token: devToken,
+    expiresAt: now + 86400 * 1000,
+  };
+
+  return devToken;
+}
+
+async function handleGetPowerSyncToken(corsHeaders: Record<string, string>): Promise<Response> {
+  if (!PS_ADMIN_TOKEN) {
+    return json(
+      { error: "PS_ADMIN_TOKEN not configured" },
+      503,
+      corsHeaders
+    );
+  }
+
+  try {
+    const token = await generatePowerSyncToken();
+    return json({
+      token,
+      endpoint: POWERSYNC_ENDPOINT,
+    }, 200, corsHeaders);
+  } catch (err: any) {
+    console.error("[PowerSync Token] ❌ Generation failed:", err.message);
+    return json(
+      { error: "Failed to generate PowerSync token" },
+      500,
+      corsHeaders
+    );
+  }
 }
 
 // ── Handlers ───────────────────────────────────────────────────────────────────
@@ -455,6 +561,10 @@ const server = Bun.serve({
     }
 
     try {
+      if (pathname === "/powersync/token" && method === "GET") {
+        return await handleGetPowerSyncToken(corsHeaders);
+      }
+
       if (pathname === "/health" && method === "GET") {
         return await handleHealth(corsHeaders);
       }

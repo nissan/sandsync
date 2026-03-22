@@ -1,16 +1,33 @@
 import { Schema, Table, Column, ColumnType, AbstractPowerSyncDatabase } from "@powersync/web";
 import { PowerSyncDatabase } from "@powersync/web";
 
-// PowerSync backend connector — uses dev token for local/hackathon use.
-// For production: swap fetchCredentials() to return a user-scoped Supabase JWT.
+// PowerSync backend connector — fetches token dynamically from API.
+// For development: falls back to VITE_POWERSYNC_DEV_TOKEN if API is unavailable.
 export class DevTokenConnector {
   async fetchCredentials() {
-    const token = import.meta.env.VITE_POWERSYNC_DEV_TOKEN;
-    if (!token) throw new Error("VITE_POWERSYNC_DEV_TOKEN not set");
-    return {
-      endpoint: import.meta.env.VITE_POWERSYNC_URL as string,
-      token,
-    };
+    const apiUrl = (import.meta.env as any).VITE_API_URL || "https://sandsync-api.fly.dev";
+    
+    try {
+      const res = await fetch(`${apiUrl}/powersync/token`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch PowerSync token: ${res.status}`);
+      }
+      const data = await res.json();
+      return {
+        endpoint: data.endpoint,
+        token: data.token,
+      };
+    } catch (err: any) {
+      console.error("[DevTokenConnector] Token fetch failed, falling back to dev token:", err.message);
+      // Fallback to dev token if API is unavailable
+      const fallbackToken = import.meta.env.VITE_POWERSYNC_DEV_TOKEN;
+      const fallbackEndpoint = import.meta.env.VITE_POWERSYNC_URL;
+      if (!fallbackToken) throw new Error("VITE_POWERSYNC_DEV_TOKEN not set");
+      return {
+        endpoint: fallbackEndpoint as string,
+        token: fallbackToken,
+      };
+    }
   }
 
   async uploadData(_database: AbstractPowerSyncDatabase) {
